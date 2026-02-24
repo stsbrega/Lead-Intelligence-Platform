@@ -41,7 +41,15 @@ export default function LeadsPage() {
         <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-dune">
           Leads
         </h1>
-        <p className="text-sm text-gray-50">{rows.length} clients analyzed</p>
+        <div className="flex items-center gap-4">
+          <p className="text-sm text-gray-50">{rows.length} clients analyzed</p>
+          <Link
+            href="/leads/new"
+            className="bg-ws-green text-ws-white text-sm font-medium px-4 py-2 rounded-[6px] hover:brightness-110 transition-all"
+          >
+            + Add New Lead
+          </Link>
+        </div>
       </div>
 
       <Card className="overflow-hidden">
