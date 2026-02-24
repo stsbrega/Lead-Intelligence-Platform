@@ -1,26 +1,64 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* === WEALTHSIMPLE DESIGN TOKENS === */
+
+  /* Core palette */
+  --color-dune: #32302F;
+  --color-cream: #F5F0EB;
+  --color-ws-white: #FFFFFF;
+  --color-ws-green: #00B47E;
+  --color-ws-green-light: #E6F7F1;
+  --color-ws-green-dark: #007A56;
+  --color-ws-orange: #E8661A;
+  --color-ws-orange-light: #FDF0E8;
+  --color-ws-red: #D94F3D;
+  --color-ws-red-light: #FDECEA;
+  --color-ws-yellow: #F5C842;
+  --color-ws-yellow-light: #FEF9E7;
+
+  /* Warm gray scale */
+  --color-gray-90: #1A1918;
+  --color-gray-70: #4D4B49;
+  --color-gray-50: #807E7C;
+  --color-gray-30: #B3B1AF;
+  --color-gray-10: #E6E5E4;
+  --color-gray-05: #F2F1F0;
+
+  /* Fonts */
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-body: "Jost", system-ui, sans-serif;
+
+  /* Shadows (warm, dune-tinted) */
+  --shadow-ws: 0 1px 3px rgba(50, 48, 47, 0.08);
+  --shadow-ws-md: 0 4px 12px rgba(50, 48, 47, 0.10);
+  --shadow-ws-lg: 0 8px 24px rgba(50, 48, 47, 0.14);
 }
 
+/* Base styles */
+body {
+  font-family: var(--font-body);
+  color: var(--color-dune);
+  background-color: var(--color-cream);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Remove dark mode — we're Wealthsimple warm minimalism only */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    color-scheme: light;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-cream);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-gray-30);
+  border-radius: 3px;
 }

@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: wealthsimple-lead-gen
+    runtime: node
+    plan: free
+    region: ohio
+    buildCommand: |
+      npm install &&
+      npx tsx src/lib/data/seed.ts &&
+      npx tsx scripts/generate-analysis.ts --mock &&
+      npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NODE_ENV
+        value: production
+      - key: ANTHROPIC_API_KEY
+        sync: false
