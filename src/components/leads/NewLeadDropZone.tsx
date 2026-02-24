@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useLeadCreation } from "@/context/LeadCreationContext";
 
 type Status = "idle" | "dragging" | "reading" | "analyzing" | "success" | "error";
 
@@ -19,6 +20,7 @@ export default function NewLeadDropZone() {
   const dragCounter = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const leadCreation = useLeadCreation();
 
   const processFile = useCallback(async (file: File) => {
     const validTypes = [".txt", ".docx", ".doc"];
@@ -31,6 +33,7 @@ export default function NewLeadDropZone() {
 
     setFileName(file.name);
     setStatus("reading");
+    leadCreation.startReading(file.name);
 
     let text: string;
     try {
@@ -48,6 +51,7 @@ export default function NewLeadDropZone() {
     }
 
     setStatus("analyzing");
+    leadCreation.startAnalyzing(file.name);
 
     try {
       const res = await fetch("/api/create-lead-from-notes", {
@@ -64,6 +68,7 @@ export default function NewLeadDropZone() {
       const data: SuccessData = await res.json();
       setSuccessData(data);
       setStatus("success");
+      leadCreation.setSuccess(data.clientId, data.clientName, data.score);
 
       // Redirect to the new lead after a brief delay
       setTimeout(() => {
@@ -71,9 +76,11 @@ export default function NewLeadDropZone() {
       }, 2000);
     } catch (err) {
       setStatus("error");
-      setErrorMessage(err instanceof Error ? err.message : "Lead creation failed");
+      const msg = err instanceof Error ? err.message : "Lead creation failed";
+      setErrorMessage(msg);
+      leadCreation.setError(msg);
     }
-  }, [router]);
+  }, [router, leadCreation]);
 
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Jost, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Sidebar from "@/components/layout/Sidebar";
+import Providers from "@/components/layout/Providers";
+import GlobalProgressBar from "@/components/ui/GlobalProgressBar";
 
 const jost = Jost({
   variable: "--font-jost",
@@ -26,12 +28,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${jost.variable} ${playfair.variable} antialiased`}>
-        <div className="flex min-h-screen">
-          <Sidebar />
-          <main className="flex-1 ml-60 p-8 min-w-0 overflow-x-hidden">
-            {children}
-          </main>
-        </div>
+        <Providers>
+          <GlobalProgressBar />
+          <div className="flex min-h-screen">
+            <Sidebar />
+            <main className="flex-1 ml-60 p-8 min-w-0 overflow-x-hidden">
+              {children}
+            </main>
+          </div>
+        </Providers>
       </body>
     </html>
   );

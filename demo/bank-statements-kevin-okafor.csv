@@ -1,0 +1,211 @@
+date,amount,description,category,merchant_name,is_recurring,type
+2025-09-01,5577.00,DIRECT DEP - SHOPIFY INC PAYROLL,salary_deposit,Shopify Inc,1,direct-deposit
+2025-09-02,-2100.00,PAD - MINTO PROPERTIES RENT,rent,Minto Properties,1,pad
+2025-09-02,-800.00,PAD - BMO INVESTORLINE RRSP,investment_competitor,BMO InvestorLine,1,pad
+2025-09-02,-250.00,PAD - QUESTRADE INC TFSA,investment_competitor,Questrade,1,pad
+2025-09-03,-185.00,PAD - INTACT INSURANCE AUTO,insurance_premium,Intact Insurance,1,pad
+2025-09-03,-89.99,PAD - BELL CANADA INTERNET,utilities,Bell Canada,1,pad
+2025-09-03,-55.00,PAD - KOODO MOBILE,utilities,Koodo Mobile,1,pad
+2025-09-04,-500.00,EFT - CIBC JOINT SAVINGS TRANSFER,large_transfer,CIBC,1,eft
+2025-09-05,-127.50,PAD - HYDRO OTTAWA,utilities,Hydro Ottawa,1,pad
+2025-09-05,-16.99,PAD - NETFLIX.COM,subscription,Netflix,1,pad
+2025-09-05,-11.99,PAD - SPOTIFY AB,subscription,Spotify,1,pad
+2025-09-06,-142.37,POS - LOBLAWS #4521 OTTAWA ON,groceries,Loblaws,0,debit
+2025-09-08,-67.22,POS - PETRO-CANADA #2819 OTTAWA,transportation,Petro-Canada,0,debit
+2025-09-10,-93.18,POS - FARM BOY ORLEANS ON,groceries,Farm Boy,0,debit
+2025-09-11,-34.50,POS - SHAWARMA PALACE RIDEAU,dining,Shawarma Palace,0,debit
+2025-09-13,-155.42,POS - COSTCO WHOLESALE #578 OTTAWA,groceries,Costco,0,debit
+2025-09-14,-59.99,POS - AMAZON.CA MARKETPLACE,shopping,Amazon.ca,0,debit
+2025-09-15,5577.00,DIRECT DEP - SHOPIFY INC PAYROLL,salary_deposit,Shopify Inc,1,direct-deposit
+2025-09-16,-200.00,ATM WD - SCOTIABANK BANK ST OTTAWA,other,Scotiabank ATM,0,debit
+2025-09-17,-78.40,POS - SHELL KANATA ON,transportation,Shell,0,debit
+2025-09-18,-48.50,POS - UBER EATS *6734F2,dining,Uber Eats,0,debit
+2025-09-19,-52.00,PAD - GOODLIFE FITNESS,subscription,GoodLife Fitness,1,pad
+2025-09-20,-112.88,POS - LOBLAWS #4521 OTTAWA ON,groceries,Loblaws,0,debit
+2025-09-22,-42.00,POS - SHOPPERS DRUG MART #1892,healthcare,Shoppers Drug Mart,0,debit
+2025-09-24,-27.50,POS - STARBUCKS SPARKS ST OTTAWA,dining,Starbucks,0,debit
+2025-09-25,-89.99,POS - CANADIAN TIRE #485 OTTAWA,shopping,Canadian Tire,0,debit
+2025-09-27,-15.00,POS - IMPARK OTTAWA PARKING,transportation,Impark,0,debit
+2025-09-28,-38.00,POS - TOMMY & LEFEBVRE BARBER,other,Tommy & Lefebvre,0,debit
+2025-09-29,-168.22,POS - COSTCO WHOLESALE #578 OTTAWA,groceries,Costco,0,debit
+2025-09-07,-45.00,POS - KETTLEMANS BAGELS OTTAWA,dining,Kettleman's Bagels,0,debit
+2025-09-09,-24.99,POS - APPLE.COM/BILL ITUNES,subscription,Apple,0,debit
+2025-09-15,-12.50,POS - OC TRANSPO DAY PASS,transportation,OC Transpo,0,debit
+2025-09-21,-67.88,POS - WINNERS ORLEANS ON,shopping,Winners,0,debit
+2025-09-26,-19.50,POS - SECOND CUP BYWARD MKT,dining,Second Cup,0,debit
+2025-09-30,-22.00,E-TRANSFER SENT - LUNCH SPLIT MIKE,other,E-Transfer,0,e-transfer
+2025-10-01,5577.00,DIRECT DEP - SHOPIFY INC PAYROLL,salary_deposit,Shopify Inc,1,direct-deposit
+2025-10-01,-2100.00,PAD - MINTO PROPERTIES RENT,rent,Minto Properties,1,pad
+2025-10-01,-800.00,PAD - BMO INVESTORLINE RRSP,investment_competitor,BMO InvestorLine,1,pad
+2025-10-01,-250.00,PAD - QUESTRADE INC TFSA,investment_competitor,Questrade,1,pad
+2025-10-02,-185.00,PAD - INTACT INSURANCE AUTO,insurance_premium,Intact Insurance,1,pad
+2025-10-02,-89.99,PAD - BELL CANADA INTERNET,utilities,Bell Canada,1,pad
+2025-10-02,-55.00,PAD - KOODO MOBILE,utilities,Koodo Mobile,1,pad
+2025-10-03,-500.00,EFT - CIBC JOINT SAVINGS TRANSFER,large_transfer,CIBC,1,eft
+2025-10-03,-118.75,PAD - HYDRO OTTAWA,utilities,Hydro Ottawa,1,pad
+2025-10-04,-16.99,PAD - NETFLIX.COM,subscription,Netflix,1,pad
+2025-10-04,-11.99,PAD - SPOTIFY AB,subscription,Spotify,1,pad
+2025-10-05,-137.91,POS - LOBLAWS #4521 OTTAWA ON,groceries,Loblaws,0,debit
+2025-10-07,-71.44,POS - PETRO-CANADA #2819 OTTAWA,transportation,Petro-Canada,0,debit
+2025-10-09,-108.22,POS - FARM BOY ORLEANS ON,groceries,Farm Boy,0,debit
+2025-10-10,-52.00,PAD - GOODLIFE FITNESS,subscription,GoodLife Fitness,1,pad
+2025-10-11,-43.80,POS - FIVE GUYS ORLEANS ON,dining,Five Guys,0,debit
+2025-10-12,-176.33,POS - COSTCO WHOLESALE #578 OTTAWA,groceries,Costco,0,debit
+2025-10-14,-124.99,POS - AMAZON.CA MARKETPLACE,shopping,Amazon.ca,0,debit
+2025-10-15,5577.00,DIRECT DEP - SHOPIFY INC PAYROLL,salary_deposit,Shopify Inc,1,direct-deposit
+2025-10-16,-150.00,ATM WD - TD CANADA TRUST RIDEAU CTR,other,TD ATM,0,debit
+2025-10-18,-62.80,POS - SHELL KANATA ON,transportation,Shell,0,debit
+2025-10-19,-38.75,POS - WILD WING ORLEANS ON,dining,Wild Wing,0,debit
+2025-10-21,-98.44,POS - LOBLAWS #4521 OTTAWA ON,groceries,Loblaws,0,debit
+2025-10-23,-65.00,POS - SHOPPERS DRUG MART #1892,healthcare,Shoppers Drug Mart,0,debit
+2025-10-24,-32.99,POS - LCBO ORLEANS ON,other,LCBO,0,debit
+2025-10-26,-145.00,POS - MARKS WORK WEARHOUSE OTTAWA,shopping,Mark's,0,debit
+2025-10-27,-15.00,POS - IMPARK OTTAWA PARKING,transportation,Impark,0,debit
+2025-10-28,-162.50,POS - COSTCO WHOLESALE #578 OTTAWA,groceries,Costco,0,debit
+2025-10-06,-16.80,POS - KETTLEMANS BAGELS OTTAWA,dining,Kettleman's Bagels,0,debit
+2025-10-08,-24.99,POS - APPLE.COM/BILL ITUNES,subscription,Apple,0,debit
+2025-10-13,-33.00,POS - CINEPLEX SOUTH KEYS OTTAWA,entertainment,Cineplex,0,debit
+2025-10-20,-48.90,POS - SPORT CHEK BAYSHORE OTTAWA,shopping,Sport Chek,0,debit
+2025-10-25,-14.00,POS - OC TRANSPO DAY PASS,transportation,OC Transpo,0,debit
+2025-10-30,-29.50,POS - BRIDGEHEAD COFFEE ELGIN ST,dining,Bridgehead Coffee,0,debit
+2025-11-01,5577.00,DIRECT DEP - SHOPIFY INC PAYROLL,salary_deposit,Shopify Inc,1,direct-deposit
+2025-11-01,-2100.00,PAD - MINTO PROPERTIES RENT,rent,Minto Properties,1,pad
+2025-11-01,-800.00,PAD - BMO INVESTORLINE RRSP,investment_competitor,BMO InvestorLine,1,pad
+2025-11-01,-250.00,PAD - QUESTRADE INC TFSA,investment_competitor,Questrade,1,pad
+2025-11-02,-185.00,PAD - INTACT INSURANCE AUTO,insurance_premium,Intact Insurance,1,pad
+2025-11-02,-89.99,PAD - BELL CANADA INTERNET,utilities,Bell Canada,1,pad
+2025-11-02,-55.00,PAD - KOODO MOBILE,utilities,Koodo Mobile,1,pad
+2025-11-03,-500.00,EFT - CIBC JOINT SAVINGS TRANSFER,large_transfer,CIBC,1,eft
+2025-11-03,-135.20,PAD - HYDRO OTTAWA,utilities,Hydro Ottawa,1,pad
+2025-11-04,-16.99,PAD - NETFLIX.COM,subscription,Netflix,1,pad
+2025-11-04,-11.99,PAD - SPOTIFY AB,subscription,Spotify,1,pad
+2025-11-05,-129.63,POS - LOBLAWS #4521 OTTAWA ON,groceries,Loblaws,0,debit
+2025-11-06,-52.00,PAD - GOODLIFE FITNESS,subscription,GoodLife Fitness,1,pad
+2025-11-07,-74.88,POS - PETRO-CANADA #2819 OTTAWA,transportation,Petro-Canada,0,debit
+2025-11-09,-87.45,POS - FARM BOY ORLEANS ON,groceries,Farm Boy,0,debit
+2025-11-10,2000.00,E-TRANSFER REC - OKAFOR CHIDI,other,E-Transfer,0,e-transfer
+2025-11-12,-41.25,POS - POPEYES CHICKEN KANATA,dining,Popeyes,0,debit
+2025-11-13,-192.77,POS - COSTCO WHOLESALE #578 OTTAWA,groceries,Costco,0,debit
+2025-11-15,5577.00,DIRECT DEP - SHOPIFY INC PAYROLL,salary_deposit,Shopify Inc,1,direct-deposit
+2025-11-16,-250.00,ATM WD - RBC ROYAL BANK ORLEANS,other,RBC ATM,0,debit
+2025-11-17,-55.90,POS - SHELL KANATA ON,transportation,Shell,0,debit
+2025-11-19,-179.99,POS - AMAZON.CA MARKETPLACE,shopping,Amazon.ca,0,debit
+2025-11-20,-28.40,POS - TIM HORTONS #3841 OTTAWA,dining,Tim Hortons,0,debit
+2025-11-21,-115.67,POS - LOBLAWS #4521 OTTAWA ON,groceries,Loblaws,0,debit
+2025-11-23,-47.00,POS - SHOPPERS DRUG MART #1892,healthcare,Shoppers Drug Mart,0,debit
+2025-11-24,-38.00,POS - TOMMY & LEFEBVRE BARBER,other,Tommy & Lefebvre,0,debit
+2025-11-25,-82.44,POS - CANADIAN TIRE #485 OTTAWA,shopping,Canadian Tire,0,debit
+2025-11-27,-15.00,POS - IMPARK OTTAWA PARKING,transportation,Impark,0,debit
+2025-11-28,-143.88,POS - FARM BOY ORLEANS ON,groceries,Farm Boy,0,debit
+2025-11-04,-18.50,POS - KETTLEMANS BAGELS OTTAWA,dining,Kettleman's Bagels,0,debit
+2025-11-08,-24.99,POS - APPLE.COM/BILL ITUNES,subscription,Apple,0,debit
+2025-11-13,-29.00,POS - CINEPLEX SOUTH KEYS OTTAWA,entertainment,Cineplex,0,debit
+2025-11-18,-78.33,POS - WINNERS ORLEANS ON,shopping,Winners,0,debit
+2025-11-25,-14.00,POS - OC TRANSPO DAY PASS,transportation,OC Transpo,0,debit
+2025-11-30,-35.00,E-TRANSFER SENT - BIRTHDAY GIFT,other,E-Transfer,0,e-transfer
+2025-12-01,5577.00,DIRECT DEP - SHOPIFY INC PAYROLL,salary_deposit,Shopify Inc,1,direct-deposit
+2025-12-01,-2100.00,PAD - MINTO PROPERTIES RENT,rent,Minto Properties,1,pad
+2025-12-01,-800.00,PAD - BMO INVESTORLINE RRSP,investment_competitor,BMO InvestorLine,1,pad
+2025-12-01,-250.00,PAD - QUESTRADE INC TFSA,investment_competitor,Questrade,1,pad
+2025-12-02,-185.00,PAD - INTACT INSURANCE AUTO,insurance_premium,Intact Insurance,1,pad
+2025-12-02,-89.99,PAD - BELL CANADA INTERNET,utilities,Bell Canada,1,pad
+2025-12-02,-55.00,PAD - KOODO MOBILE,utilities,Koodo Mobile,1,pad
+2025-12-03,-500.00,EFT - CIBC JOINT SAVINGS TRANSFER,large_transfer,CIBC,1,eft
+2025-12-03,-142.60,PAD - HYDRO OTTAWA,utilities,Hydro Ottawa,1,pad
+2025-12-04,-16.99,PAD - NETFLIX.COM,subscription,Netflix,1,pad
+2025-12-04,-11.99,PAD - SPOTIFY AB,subscription,Spotify,1,pad
+2025-12-05,-166.42,POS - LOBLAWS #4521 OTTAWA ON,groceries,Loblaws,0,debit
+2025-12-06,-52.00,PAD - GOODLIFE FITNESS,subscription,GoodLife Fitness,1,pad
+2025-12-07,-68.90,POS - PETRO-CANADA #2819 OTTAWA,transportation,Petro-Canada,0,debit
+2025-12-08,-812.44,POS - CANADIAN TIRE AUTO SVC OTTAWA,transportation,Canadian Tire Auto,0,debit
+2025-12-10,-198.33,POS - COSTCO WHOLESALE #578 OTTAWA,groceries,Costco,0,debit
+2025-12-11,-78.50,POS - EAST INDIA COMPANY RESTAURANT,dining,East India Company,0,debit
+2025-12-12,-245.00,POS - AMAZON.CA MARKETPLACE,shopping,Amazon.ca,0,debit
+2025-12-13,-189.99,POS - RIDEAU CENTRE HUDSON BAY,shopping,Hudson's Bay,0,debit
+2025-12-14,-95.22,POS - FARM BOY ORLEANS ON,groceries,Farm Boy,0,debit
+2025-12-15,5577.00,DIRECT DEP - SHOPIFY INC PAYROLL,salary_deposit,Shopify Inc,1,direct-deposit
+2025-12-16,-300.00,ATM WD - SCOTIABANK BANK ST OTTAWA,other,Scotiabank ATM,0,debit
+2025-12-17,-72.30,POS - SHELL KANATA ON,transportation,Shell,0,debit
+2025-12-18,-156.78,POS - LCBO ORLEANS ON,other,LCBO,0,debit
+2025-12-19,-63.40,POS - UBER EATS *8821A7,dining,Uber Eats,0,debit
+2025-12-20,-135.50,POS - LOBLAWS #4521 OTTAWA ON,groceries,Loblaws,0,debit
+2025-12-22,-134.99,POS - BEST BUY #942 OTTAWA,shopping,Best Buy,0,debit
+2025-12-23,-88.00,POS - SHOPPERS DRUG MART #1892,healthcare,Shoppers Drug Mart,0,debit
+2025-12-24,-211.45,POS - COSTCO WHOLESALE #578 OTTAWA,groceries,Costco,0,debit
+2025-12-27,-15.00,POS - IMPARK OTTAWA PARKING,transportation,Impark,0,debit
+2025-12-29,-42.80,POS - STARBUCKS SPARKS ST OTTAWA,dining,Starbucks,0,debit
+2025-12-05,-24.99,POS - APPLE.COM/BILL ITUNES,subscription,Apple,0,debit
+2025-12-09,-55.00,POS - SPORT CHEK BAYSHORE OTTAWA,shopping,Sport Chek,0,debit
+2025-12-15,-14.00,POS - OC TRANSPO DAY PASS,transportation,OC Transpo,0,debit
+2025-12-21,-42.00,POS - CINEPLEX SOUTH KEYS OTTAWA,entertainment,Cineplex,0,debit
+2025-12-28,-32.50,POS - SECOND CUP BYWARD MKT,dining,Second Cup,0,debit
+2025-12-30,-55.00,E-TRANSFER SENT - NYE PARTY SPLIT,other,E-Transfer,0,e-transfer
+2026-01-01,5577.00,DIRECT DEP - SHOPIFY INC PAYROLL,salary_deposit,Shopify Inc,1,direct-deposit
+2026-01-02,-2100.00,PAD - MINTO PROPERTIES RENT,rent,Minto Properties,1,pad
+2026-01-02,-800.00,PAD - BMO INVESTORLINE RRSP,investment_competitor,BMO InvestorLine,1,pad
+2026-01-02,-250.00,PAD - QUESTRADE INC TFSA,investment_competitor,Questrade,1,pad
+2026-01-02,-185.00,PAD - INTACT INSURANCE AUTO,insurance_premium,Intact Insurance,1,pad
+2026-01-03,-89.99,PAD - BELL CANADA INTERNET,utilities,Bell Canada,1,pad
+2026-01-03,-55.00,PAD - KOODO MOBILE,utilities,Koodo Mobile,1,pad
+2026-01-03,-500.00,EFT - CIBC JOINT SAVINGS TRANSFER,large_transfer,CIBC,1,eft
+2026-01-04,-148.90,PAD - HYDRO OTTAWA,utilities,Hydro Ottawa,1,pad
+2026-01-05,-16.99,PAD - NETFLIX.COM,subscription,Netflix,1,pad
+2026-01-05,-11.99,PAD - SPOTIFY AB,subscription,Spotify,1,pad
+2026-01-06,-52.00,PAD - GOODLIFE FITNESS,subscription,GoodLife Fitness,1,pad
+2026-01-07,-121.38,POS - LOBLAWS #4521 OTTAWA ON,groceries,Loblaws,0,debit
+2026-01-08,-350.00,POS - BYTOWN VET CLINIC OTTAWA,other,Bytown Vet Clinic,0,debit
+2026-01-10,-82.16,POS - FARM BOY ORLEANS ON,groceries,Farm Boy,0,debit
+2026-01-11,-66.75,POS - PETRO-CANADA #2819 OTTAWA,transportation,Petro-Canada,0,debit
+2026-01-13,-37.90,POS - BURGERS N FRIES FOREVER OTTAWA,dining,Burgers n Fries Forever,0,debit
+2026-01-14,-184.55,POS - COSTCO WHOLESALE #578 OTTAWA,groceries,Costco,0,debit
+2026-01-15,5577.00,DIRECT DEP - SHOPIFY INC PAYROLL,salary_deposit,Shopify Inc,1,direct-deposit
+2026-01-16,-100.00,ATM WD - TD CANADA TRUST RIDEAU CTR,other,TD ATM,0,debit
+2026-01-18,-58.40,POS - SHELL KANATA ON,transportation,Shell,0,debit
+2026-01-19,-44.80,POS - UBER EATS *2293B1,dining,Uber Eats,0,debit
+2026-01-20,-106.92,POS - LOBLAWS #4521 OTTAWA ON,groceries,Loblaws,0,debit
+2026-01-22,-55.00,POS - SHOPPERS DRUG MART #1892,healthcare,Shoppers Drug Mart,0,debit
+2026-01-23,-38.00,POS - TOMMY & LEFEBVRE BARBER,other,Tommy & Lefebvre,0,debit
+2026-01-24,-76.49,POS - AMAZON.CA MARKETPLACE,shopping,Amazon.ca,0,debit
+2026-01-25,-15.00,POS - IMPARK OTTAWA PARKING,transportation,Impark,0,debit
+2026-01-27,-148.33,POS - FARM BOY ORLEANS ON,groceries,Farm Boy,0,debit
+2026-01-29,-28.50,POS - BRIDGEHEAD COFFEE ELGIN ST,dining,Bridgehead Coffee,0,debit
+2026-01-05,-22.40,POS - KETTLEMANS BAGELS OTTAWA,dining,Kettleman's Bagels,0,debit
+2026-01-09,-24.99,POS - APPLE.COM/BILL ITUNES,subscription,Apple,0,debit
+2026-01-12,-14.00,POS - OC TRANSPO DAY PASS,transportation,OC Transpo,0,debit
+2026-01-17,-33.00,POS - CINEPLEX SOUTH KEYS OTTAWA,entertainment,Cineplex,0,debit
+2026-01-21,-62.44,POS - WINNERS ORLEANS ON,shopping,Winners,0,debit
+2026-01-31,-39.99,POS - LCBO ORLEANS ON,other,LCBO,0,debit
+2026-02-01,5577.00,DIRECT DEP - SHOPIFY INC PAYROLL,salary_deposit,Shopify Inc,1,direct-deposit
+2026-02-01,-2100.00,PAD - MINTO PROPERTIES RENT,rent,Minto Properties,1,pad
+2026-02-01,-800.00,PAD - BMO INVESTORLINE RRSP,investment_competitor,BMO InvestorLine,1,pad
+2026-02-01,-250.00,PAD - QUESTRADE INC TFSA,investment_competitor,Questrade,1,pad
+2026-02-02,-185.00,PAD - INTACT INSURANCE AUTO,insurance_premium,Intact Insurance,1,pad
+2026-02-02,-89.99,PAD - BELL CANADA INTERNET,utilities,Bell Canada,1,pad
+2026-02-02,-55.00,PAD - KOODO MOBILE,utilities,Koodo Mobile,1,pad
+2026-02-03,-500.00,EFT - CIBC JOINT SAVINGS TRANSFER,large_transfer,CIBC,1,eft
+2026-02-03,-155.30,PAD - HYDRO OTTAWA,utilities,Hydro Ottawa,1,pad
+2026-02-04,-16.99,PAD - NETFLIX.COM,subscription,Netflix,1,pad
+2026-02-04,-11.99,PAD - SPOTIFY AB,subscription,Spotify,1,pad
+2026-02-05,-52.00,PAD - GOODLIFE FITNESS,subscription,GoodLife Fitness,1,pad
+2026-02-06,-134.78,POS - LOBLAWS #4521 OTTAWA ON,groceries,Loblaws,0,debit
+2026-02-07,-69.33,POS - PETRO-CANADA #2819 OTTAWA,transportation,Petro-Canada,0,debit
+2026-02-09,-103.45,POS - FARM BOY ORLEANS ON,groceries,Farm Boy,0,debit
+2026-02-10,-29.90,POS - POPEYES CHICKEN KANATA,dining,Popeyes,0,debit
+2026-02-12,-171.88,POS - COSTCO WHOLESALE #578 OTTAWA,groceries,Costco,0,debit
+2026-02-13,-89.99,POS - AMAZON.CA MARKETPLACE,shopping,Amazon.ca,0,debit
+2026-02-14,-128.50,POS - ATELIER RESTAURANT OTTAWA,dining,Atelier,0,debit
+2026-02-15,5577.00,DIRECT DEP - SHOPIFY INC PAYROLL,salary_deposit,Shopify Inc,1,direct-deposit
+2026-02-16,-200.00,ATM WD - RBC ROYAL BANK ORLEANS,other,RBC ATM,0,debit
+2026-02-17,-61.20,POS - SHELL KANATA ON,transportation,Shell,0,debit
+2026-02-18,-48.75,POS - WILD WING ORLEANS ON,dining,Wild Wing,0,debit
+2026-02-19,-117.66,POS - LOBLAWS #4521 OTTAWA ON,groceries,Loblaws,0,debit
+2026-02-20,-42.50,POS - SHOPPERS DRUG MART #1892,healthcare,Shoppers Drug Mart,0,debit
+2026-02-21,-99.00,POS - CANADIAN TIRE #485 OTTAWA,shopping,Canadian Tire,0,debit
+2026-02-22,-15.00,POS - IMPARK OTTAWA PARKING,transportation,Impark,0,debit
+2026-02-23,-155.90,POS - COSTCO WHOLESALE #578 OTTAWA,groceries,Costco,0,debit
+2026-02-04,-19.75,POS - KETTLEMANS BAGELS OTTAWA,dining,Kettleman's Bagels,0,debit
+2026-02-05,-24.99,POS - APPLE.COM/BILL ITUNES,subscription,Apple,0,debit
+2026-02-08,-14.00,POS - OC TRANSPO DAY PASS,transportation,OC Transpo,0,debit
+2026-02-11,-29.00,POS - CINEPLEX SOUTH KEYS OTTAWA,entertainment,Cineplex,0,debit
+2026-02-15,-45.00,E-TRANSFER SENT - VALENTINE DINNER,other,E-Transfer,0,e-transfer
+2026-02-24,-38.00,POS - TOMMY & LEFEBVRE BARBER,other,Tommy & Lefebvre,0,debit
