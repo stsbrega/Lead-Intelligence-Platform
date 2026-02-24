@@ -1,9 +1,58 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/data/db";
 import { analyzeNotes } from "@/lib/ai/notes-analyzer";
+import { extractText, isSupportedFile } from "@/lib/file-parser";
 
 export async function POST(request: NextRequest) {
-  const { clientId, notesText } = await request.json();
+  let clientId: string;
+  let notesText: string;
+
+  const contentType = request.headers.get("content-type") ?? "";
+
+  if (contentType.includes("multipart/form-data")) {
+    // ── File upload path (Excel, PDF, or text-based files) ──
+    const formData = await request.formData();
+    const file = formData.get("file") as File | null;
+    clientId = (formData.get("clientId") as string) ?? "";
+
+    if (!file) {
+      return NextResponse.json(
+        { error: "No file provided" },
+        { status: 400 }
+      );
+    }
+
+    if (!clientId) {
+      return NextResponse.json(
+        { error: "clientId is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!isSupportedFile(file.name)) {
+      return NextResponse.json(
+        { error: "Unsupported file type. Please upload .txt, .docx, .xlsx, .xls, or .pdf" },
+        { status: 400 }
+      );
+    }
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      notesText = await extractText(buffer, file.name);
+    } catch (err) {
+      console.error("File parsing failed:", err);
+      return NextResponse.json(
+        { error: "Failed to read the uploaded file" },
+        { status: 400 }
+      );
+    }
+  } else {
+    // ── Legacy JSON path ──
+    const body = await request.json();
+    clientId = body.clientId;
+    notesText = body.notesText;
+  }
 
   if (!clientId || !notesText) {
     return NextResponse.json(

@@ -19,40 +19,60 @@ export default function NotesDropZone({ clientId, existingAnalyses }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const processFile = useCallback(async (file: File) => {
-    const validTypes = [".txt", ".docx", ".doc"];
+    const validTypes = [".txt", ".docx", ".doc", ".xlsx", ".xls", ".pdf"];
     const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
     if (!validTypes.includes(ext)) {
       setStatus("error");
-      setErrorMessage("Please upload a .txt or .docx file");
+      setErrorMessage("Please upload a .txt, .docx, .xlsx, or .pdf file");
       return;
     }
 
     setFileName(file.name);
     setStatus("reading");
 
-    let text: string;
-    try {
-      text = await file.text();
-    } catch {
-      setStatus("error");
-      setErrorMessage("Failed to read file");
-      return;
-    }
+    // Binary formats (Excel, PDF) must be parsed server-side.
+    const isBinary = [".xlsx", ".xls", ".pdf"].includes(ext);
 
-    if (!text.trim()) {
-      setStatus("error");
-      setErrorMessage("File appears to be empty");
-      return;
+    if (!isBinary) {
+      let text: string;
+      try {
+        text = await file.text();
+      } catch {
+        setStatus("error");
+        setErrorMessage("Failed to read file");
+        return;
+      }
+
+      if (!text.trim()) {
+        setStatus("error");
+        setErrorMessage("File appears to be empty");
+        return;
+      }
     }
 
     setStatus("analyzing");
 
     try {
-      const res = await fetch("/api/analyze-notes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clientId, notesText: text }),
-      });
+      let res: Response;
+
+      if (isBinary) {
+        // Send as FormData — server parses the binary file
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("clientId", clientId);
+        res = await fetch("/api/analyze-notes", {
+          method: "POST",
+          body: formData,
+        });
+      } else {
+        // Send as JSON — text read client-side
+        const text = await file.text();
+        res = await fetch("/api/analyze-notes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ clientId, notesText: text }),
+        });
+      }
 
       if (!res.ok) {
         const data = await res.json();
@@ -122,7 +142,7 @@ export default function NotesDropZone({ clientId, existingAnalyses }: Props) {
         <input
           ref={fileInputRef}
           type="file"
-          accept=".txt,.docx,.doc"
+          accept=".txt,.docx,.doc,.xlsx,.xls,.pdf"
           onChange={handleFileSelect}
           className="hidden"
         />
@@ -131,7 +151,7 @@ export default function NotesDropZone({ clientId, existingAnalyses }: Props) {
           <>
             <UploadIcon />
             <p className="text-sm font-medium text-dune mt-2">Drop meeting notes here</p>
-            <p className="text-xs text-gray-50 mt-1">or click to browse &middot; .txt, .docx</p>
+            <p className="text-xs text-gray-50 mt-1">or click to browse &middot; .txt, .docx, .xlsx, .pdf</p>
           </>
         )}
 

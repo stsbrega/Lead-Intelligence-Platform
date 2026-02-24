@@ -23,11 +23,11 @@ export default function NewLeadDropZone() {
   const leadCreation = useLeadCreation();
 
   const processFile = useCallback(async (file: File) => {
-    const validTypes = [".txt", ".docx", ".doc"];
+    const validTypes = [".txt", ".docx", ".doc", ".xlsx", ".xls", ".pdf"];
     const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
     if (!validTypes.includes(ext)) {
       setStatus("error");
-      setErrorMessage("Please upload a .txt or .docx file");
+      setErrorMessage("Please upload a .txt, .docx, .xlsx, or .pdf file");
       return;
     }
 
@@ -35,30 +35,50 @@ export default function NewLeadDropZone() {
     setStatus("reading");
     leadCreation.startReading(file.name);
 
-    let text: string;
-    try {
-      text = await file.text();
-    } catch {
-      setStatus("error");
-      setErrorMessage("Failed to read file");
-      return;
-    }
+    // Binary formats (Excel, PDF) must be parsed server-side.
+    // Text formats can be read client-side for a quick empty-file check.
+    const isBinary = [".xlsx", ".xls", ".pdf"].includes(ext);
 
-    if (!text.trim()) {
-      setStatus("error");
-      setErrorMessage("File appears to be empty");
-      return;
+    if (!isBinary) {
+      let text: string;
+      try {
+        text = await file.text();
+      } catch {
+        setStatus("error");
+        setErrorMessage("Failed to read file");
+        return;
+      }
+
+      if (!text.trim()) {
+        setStatus("error");
+        setErrorMessage("File appears to be empty");
+        return;
+      }
     }
 
     setStatus("analyzing");
     leadCreation.startAnalyzing(file.name);
 
     try {
-      const res = await fetch("/api/create-lead-from-notes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notesText: text }),
-      });
+      let res: Response;
+
+      if (isBinary) {
+        // Send as FormData — server will parse the binary file
+        const formData = new FormData();
+        formData.append("file", file);
+        res = await fetch("/api/create-lead-from-notes", {
+          method: "POST",
+          body: formData,
+        });
+      } else {
+        // Send as JSON — text already read client-side
+        const text = await file.text();
+        res = await fetch("/api/create-lead-from-notes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ notesText: text }),
+        });
+      }
 
       if (!res.ok) {
         const data = await res.json();
@@ -133,7 +153,7 @@ export default function NewLeadDropZone() {
       <input
         ref={fileInputRef}
         type="file"
-        accept=".txt,.docx,.doc"
+        accept=".txt,.docx,.doc,.xlsx,.xls,.pdf"
         onChange={handleFileSelect}
         className="hidden"
       />
@@ -149,7 +169,7 @@ export default function NewLeadDropZone() {
             client information, identify opportunities, and create a scored lead.
           </p>
           <p className="text-xs text-gray-30 mt-3">
-            or click to browse &middot; .txt, .docx
+            or click to browse &middot; .txt, .docx, .xlsx, .pdf
           </p>
         </>
       )}
