@@ -112,3 +112,16 @@ export interface LeadSummary {
 }
 
 export type LeadStatus = "new" | "reviewed" | "contacted" | "converted" | "dismissed";
+
+// === Advisor Note Analysis ===
+export interface NoteAnalysis {
+  id: string;
+  clientId: string;
+  notesText: string;
+  insights: string[];
+  newSignals: { type: string; description: string; severity: "high" | "medium" | "low" }[];
+  updatedRecommendations: string[];
+  summaryAddendum: string;
+  scoreAdjustment: number;
+  analyzedAt: string;
+}

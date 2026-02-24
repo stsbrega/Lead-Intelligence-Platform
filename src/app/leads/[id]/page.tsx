@@ -5,6 +5,8 @@ import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import ScoreBar from "@/components/ui/ScoreBar";
 import AdvisorDecisionPanel from "@/components/leads/AdvisorDecisionPanel";
+import NotesDropZone from "@/components/leads/NotesDropZone";
+import type { NoteAnalysis } from "@/types";
 import {
   formatCurrency,
   formatCurrencyDetailed,
@@ -38,6 +40,22 @@ export default async function LeadDetailPage({ params }: Props) {
   const statusRow = db.prepare(
     "SELECT * FROM lead_status WHERE client_id = ?"
   ).get(id) as Record<string, unknown> | undefined;
+
+  const noteAnalysisRows = db.prepare(
+    "SELECT * FROM advisor_note_analyses WHERE client_id = ? ORDER BY analyzed_at DESC"
+  ).all(id) as Record<string, unknown>[];
+
+  const noteAnalyses: NoteAnalysis[] = noteAnalysisRows.map(row => ({
+    id: row.id as string,
+    clientId: row.client_id as string,
+    notesText: row.notes_text as string,
+    insights: JSON.parse(row.insights as string || "[]"),
+    newSignals: JSON.parse(row.new_signals as string || "[]"),
+    updatedRecommendations: JSON.parse(row.updated_recommendations as string || "[]"),
+    summaryAddendum: row.summary_addendum as string,
+    scoreAdjustment: row.score_adjustment as number,
+    analyzedAt: row.analyzed_at as string,
+  }));
 
   const client = {
     firstName: clientRow.first_name as string,
@@ -251,6 +269,9 @@ export default async function LeadDetailPage({ params }: Props) {
                 currentNotes={advisorNotes}
               />
             </div>
+
+            {/* Meeting Notes Upload */}
+            <NotesDropZone clientId={id} existingAnalyses={noteAnalyses} />
 
             {/* Recommended Actions */}
             <Card className="p-6">

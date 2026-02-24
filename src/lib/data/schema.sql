@@ -49,6 +49,20 @@ CREATE TABLE IF NOT EXISTS lead_status (
   FOREIGN KEY (client_id) REFERENCES clients(id)
 );
 
+CREATE TABLE IF NOT EXISTS advisor_note_analyses (
+  id TEXT PRIMARY KEY,
+  client_id TEXT NOT NULL,
+  notes_text TEXT,
+  insights TEXT,
+  new_signals TEXT,
+  updated_recommendations TEXT,
+  summary_addendum TEXT,
+  score_adjustment INTEGER DEFAULT 0,
+  analyzed_at TEXT,
+  FOREIGN KEY (client_id) REFERENCES clients(id)
+);
+
 CREATE INDEX IF NOT EXISTS idx_transactions_client ON transactions(client_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category);
 CREATE INDEX IF NOT EXISTS idx_analyses_score ON analyses(score DESC);
+CREATE INDEX IF NOT EXISTS idx_note_analyses_client ON advisor_note_analyses(client_id);
