@@ -711,6 +711,44 @@ function standardDeviation(values: number[]): number {
   return Math.sqrt(squaredDiffs.reduce((a, b) => a + b, 0) / values.length);
 }
 
+// === Vertical Inference ===
+
+export function inferVertical(
+  client: Client,
+  transactions: Transaction[]
+): BankingVertical {
+  const descLower = (d: string) => d.toLowerCase();
+
+  // Commercial: business owners with business-pattern income
+  const businessIndicators = transactions.filter(
+    t =>
+      t.amount > 0 &&
+      (descLower(t.description).includes("prof corp") ||
+        descLower(t.description).includes("revenue") ||
+        descLower(t.merchantName).includes("corp"))
+  );
+  const isBusinessOwner = /owner|entrepreneur|founder|proprietor/i.test(client.occupation);
+  if ((businessIndicators.length >= 3 || isBusinessOwner) && client.annualIncome >= 100000) {
+    return "commercial_banking";
+  }
+
+  // Wealth Management: high income + high balance, or professional with large assets
+  const isHighEarner = client.annualIncome >= 200000;
+  const hasSignificantAssets = client.totalBalance >= 100000;
+  const isRetiredWithAssets = /retired/i.test(client.occupation) && client.totalBalance >= 50000;
+  if ((isHighEarner && hasSignificantAssets) || isRetiredWithAssets) {
+    return "wealth_management";
+  }
+
+  // Mortgage: has active mortgage payments and in prime homebuying age
+  const hasMortgage = transactions.some(t => t.category === "mortgage_payment" && t.isRecurring);
+  if (hasMortgage && client.age >= 25 && client.age <= 50) {
+    return "mortgage_lending";
+  }
+
+  return "retail_banking";
+}
+
 // === Decay Calculator (for use with behavioral/intent signals over time) ===
 
 export function calculateDecayedScore(

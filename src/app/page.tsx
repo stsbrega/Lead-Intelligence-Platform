@@ -4,43 +4,52 @@ import MetricCard from "@/components/ui/MetricCard";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import ScoreBar from "@/components/ui/ScoreBar";
-import { formatCurrency, getScoreColor, getSignalTypeLabel } from "@/lib/utils/formatting";
+import { computeAllQualificationScores } from "@/lib/scoring/compute";
+import {
+  formatCurrency,
+  getSignalTypeLabel,
+  getTierBadgeColor,
+  getVerticalLabel,
+} from "@/lib/utils/formatting";
 
 interface AnalysisRow {
   score: number;
   signals: string;
 }
 
-interface LeadRow {
+interface ClientRow {
   id: string;
   first_name: string;
   last_name: string;
   occupation: string;
   city: string;
   province: string;
-  score: number;
-  summary: string;
-  signals: string;
 }
 
 export const dynamic = "force-dynamic";
 
 export default function DashboardPage() {
-  // Fetch metrics
-  const analyses = db.prepare(`
-    SELECT a.score, a.signals
-    FROM analyses a
-  `).all() as AnalysisRow[];
+  // Compute qualification scores for all leads
+  const qualScores = computeAllQualificationScores();
+  const allClients = db.prepare("SELECT id, first_name, last_name, occupation, city, province FROM clients").all() as ClientRow[];
 
-  const totalLeads = analyses.length;
-  const highPriorityLeads = analyses.filter(a => a.score >= 80).length;
-  const avgScore = totalLeads > 0
-    ? Math.round(analyses.reduce((sum, a) => sum + a.score, 0) / totalLeads)
-    : 0;
+  // Fetch AI analyses for signal data
+  const analyses = db.prepare("SELECT a.score, a.signals FROM analyses a").all() as AnalysisRow[];
 
+  const totalLeads = allClients.length;
+
+  // Tier distribution from qualification scores
+  const tierCounts = { A: 0, B: 0, C: 0, D: 0 };
+  let totalComposite = 0;
+  for (const [, score] of qualScores) {
+    tierCounts[score.tier]++;
+    totalComposite += score.compositeScore;
+  }
+  const avgComposite = qualScores.size > 0 ? Math.round(totalComposite / qualScores.size) : 0;
+
+  // Opportunity from AI signals
   let totalOpportunityValue = 0;
   const signalTypeCounts: Record<string, number> = {};
-
   for (const a of analyses) {
     const signals = JSON.parse(a.signals || "[]");
     for (const signal of signals) {
@@ -50,29 +59,30 @@ export default function DashboardPage() {
     }
   }
 
-  const scoreDistribution = [
-    { range: "80-100", min: 80, max: 100, label: "High" },
-    { range: "60-79", min: 60, max: 79, label: "Medium" },
-    { range: "40-59", min: 40, max: 59, label: "Emerging" },
-    { range: "0-39", min: 0, max: 39, label: "Low" },
-  ].map(r => ({
-    ...r,
-    count: analyses.filter(a => a.score >= r.min && a.score <= r.max).length,
-  }));
-
   const topSignalTypes = Object.entries(signalTypeCounts)
     .sort(([, a], [, b]) => b - a)
     .slice(0, 5);
 
-  // Top leads
-  const topLeads = db.prepare(`
-    SELECT c.id, c.first_name, c.last_name, c.occupation, c.city, c.province,
-           a.score, a.summary, a.signals
-    FROM clients c
-    JOIN analyses a ON c.id = a.client_id
-    ORDER BY a.score DESC
-    LIMIT 4
-  `).all() as LeadRow[];
+  // Tier distribution data
+  const tierDistribution = [
+    { tier: "A", label: "Sales-Ready", color: "bg-ws-green", count: tierCounts.A },
+    { tier: "B", label: "Sales-Qualified", color: "bg-ws-orange", count: tierCounts.B },
+    { tier: "C", label: "Marketing-Qualified", color: "bg-ws-yellow", count: tierCounts.C },
+    { tier: "D", label: "Unqualified", color: "bg-gray-30", count: tierCounts.D },
+  ];
+
+  // Vertical distribution
+  const verticalCounts: Record<string, number> = {};
+  for (const [, score] of qualScores) {
+    verticalCounts[score.vertical] = (verticalCounts[score.vertical] || 0) + 1;
+  }
+
+  // Top leads sorted by composite score
+  const topLeads = [...allClients]
+    .map(c => ({ ...c, qual: qualScores.get(c.id) }))
+    .filter(c => c.qual)
+    .sort((a, b) => (b.qual?.compositeScore ?? 0) - (a.qual?.compositeScore ?? 0))
+    .slice(0, 4);
 
   return (
     <div>
@@ -85,17 +95,17 @@ export default function DashboardPage() {
         <MetricCard
           label="Total Leads"
           value={String(totalLeads)}
-          subtitle="Analyzed clients"
+          subtitle="Qualified clients"
         />
         <MetricCard
-          label="High Priority"
-          value={String(highPriorityLeads)}
+          label="Tier A (Sales-Ready)"
+          value={String(tierCounts.A)}
           subtitle="Score 80+"
           accent="green"
         />
         <MetricCard
-          label="Avg Score"
-          value={String(avgScore)}
+          label="Avg Composite Score"
+          value={String(avgComposite)}
           subtitle="Across all leads"
         />
         <MetricCard
@@ -107,20 +117,21 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-6 mb-8">
-        {/* Score Distribution */}
+        {/* Tier Distribution */}
         <Card className="p-6">
           <h2 className="text-sm font-semibold text-gray-50 uppercase tracking-wider mb-4">
-            Score Distribution
+            Tier Distribution
           </h2>
           <div className="space-y-3">
-            {scoreDistribution.map(d => (
-              <div key={d.range} className="flex items-center gap-3">
-                <span className="text-sm text-gray-50 w-16">{d.label}</span>
+            {tierDistribution.map(d => (
+              <div key={d.tier} className="flex items-center gap-3">
+                <Badge className={getTierBadgeColor(d.tier)}>
+                  <span className="w-6 text-center">{d.tier}</span>
+                </Badge>
+                <span className="text-sm text-gray-50 w-28">{d.label}</span>
                 <div className="flex-1 h-6 bg-gray-05 rounded-[4px] overflow-hidden">
                   <div
-                    className={`h-full rounded-[4px] ${
-                      d.min >= 80 ? "bg-ws-green" : d.min >= 60 ? "bg-ws-orange" : d.min >= 40 ? "bg-ws-yellow" : "bg-gray-30"
-                    }`}
+                    className={`h-full rounded-[4px] ${d.color}`}
                     style={{ width: `${totalLeads > 0 ? (d.count / totalLeads) * 100 : 0}%` }}
                   />
                 </div>
@@ -130,9 +141,29 @@ export default function DashboardPage() {
           </div>
         </Card>
 
-        {/* Top Signal Types */}
+        {/* Top Signal Types + Vertical Mix */}
         <Card className="p-6">
           <h2 className="text-sm font-semibold text-gray-50 uppercase tracking-wider mb-4">
+            Vertical Distribution
+          </h2>
+          <div className="space-y-3 mb-6">
+            {Object.entries(verticalCounts).map(([vertical, count]) => (
+              <div key={vertical} className="flex items-center justify-between">
+                <span className="text-sm text-dune">{getVerticalLabel(vertical)}</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-24 h-2 bg-gray-05 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-ws-green rounded-full"
+                      style={{ width: `${(count / totalLeads) * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-sm font-semibold text-gray-50">{count}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <h2 className="text-sm font-semibold text-gray-50 uppercase tracking-wider mb-4 pt-4 border-t border-gray-10">
             Top Signal Types
           </h2>
           <div className="space-y-3">
@@ -142,7 +173,7 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-2">
                   <div className="w-24 h-2 bg-gray-05 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-ws-green rounded-full"
+                      className="h-full bg-ws-orange rounded-full"
                       style={{ width: `${(count / totalLeads) * 100}%` }}
                     />
                   </div>
@@ -159,43 +190,41 @@ export default function DashboardPage() {
 
       {/* Top Priority Leads */}
       <h2 className="text-sm font-semibold text-gray-50 uppercase tracking-wider mb-4">
-        High Priority Leads
+        Top Qualified Leads
       </h2>
       <div className="space-y-3">
-        {topLeads.map(lead => {
-          const signals = JSON.parse(lead.signals || "[]");
-          const topSignal = signals[0];
-
-          return (
-            <Link key={lead.id} href={`/leads/${lead.id}`}>
-              <Card hover className="p-5 flex items-center gap-6 cursor-pointer">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3">
-                    <h3 className="font-semibold text-dune">
-                      {lead.first_name} {lead.last_name}
-                    </h3>
-                    <Badge className={`${lead.score >= 80 ? "bg-ws-green-light text-ws-green-dark" : "bg-ws-orange-light text-ws-orange"}`}>
-                      Score {lead.score}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-gray-50 mt-0.5">
-                    {lead.occupation} &middot; {lead.city}, {lead.province}
-                  </p>
-                  <p className="text-sm text-gray-70 mt-1 truncate">
-                    {lead.summary}
-                  </p>
+        {topLeads.map(lead => (
+          <Link key={lead.id} href={`/leads/${lead.id}`}>
+            <Card hover className="p-5 flex items-center gap-6 cursor-pointer">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3">
+                  <h3 className="font-semibold text-dune">
+                    {lead.first_name} {lead.last_name}
+                  </h3>
+                  <Badge className={getTierBadgeColor(lead.qual!.tier)}>
+                    Tier {lead.qual!.tier}
+                  </Badge>
+                  <span className="text-xs text-gray-50 bg-gray-05 px-2 py-0.5 rounded-full">
+                    {getVerticalLabel(lead.qual!.vertical)}
+                  </span>
                 </div>
-                <div className="w-32">
-                  <ScoreBar score={lead.score} size="sm" />
-                </div>
-                <span className="text-gray-30 text-sm">Review &rarr;</span>
-              </Card>
-            </Link>
-          );
-        })}
+                <p className="text-sm text-gray-50 mt-0.5">
+                  {lead.occupation} &middot; {lead.city}, {lead.province}
+                </p>
+                <p className="text-sm text-gray-70 mt-1">
+                  Composite: {lead.qual!.compositeScore} &middot; {lead.qual!.tierLabel}
+                </p>
+              </div>
+              <div className="w-32">
+                <ScoreBar score={lead.qual!.compositeScore} size="sm" />
+              </div>
+              <span className="text-gray-30 text-sm">Review &rarr;</span>
+            </Card>
+          </Link>
+        ))}
         {topLeads.length === 0 && (
           <Card className="p-8 text-center">
-            <p className="text-gray-50">No leads analyzed yet. Run the AI analysis first.</p>
+            <p className="text-gray-50">No leads scored yet.</p>
           </Card>
         )}
       </div>

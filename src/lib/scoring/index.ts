@@ -1,7 +1,8 @@
 // Lead Qualification Scoring Module
 // Barrel export for clean imports
 
-export { scoreLeadQualification, calculateDecayedScore } from "./scorer";
+export { scoreLeadQualification, calculateDecayedScore, inferVertical } from "./scorer";
+export { computeQualificationScore, computeAllQualificationScores } from "./compute";
 
 export {
   VERTICAL_WEIGHTS,

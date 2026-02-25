@@ -85,3 +85,86 @@ export function getSeverityColor(severity: string): string {
     default: return "border-l-gray-30 bg-gray-05";
   }
 }
+
+// === Qualification Tier Helpers ===
+
+export function getTierBadgeColor(tier: string): string {
+  switch (tier) {
+    case "A": return "bg-ws-green-light text-ws-green-dark";
+    case "B": return "bg-ws-orange-light text-ws-orange";
+    case "C": return "bg-ws-yellow-light text-dune";
+    case "D": return "bg-gray-05 text-gray-50";
+    default: return "bg-gray-05 text-gray-50";
+  }
+}
+
+export function getTierScoreColor(tier: string): string {
+  switch (tier) {
+    case "A": return "text-ws-green";
+    case "B": return "text-ws-orange";
+    case "C": return "text-dune";
+    case "D": return "text-gray-50";
+    default: return "text-gray-50";
+  }
+}
+
+export function getComplianceStatusColor(status: string): string {
+  switch (status) {
+    case "pass": return "bg-ws-green-light text-ws-green-dark";
+    case "hold_for_review": return "bg-ws-orange-light text-ws-orange";
+    case "disqualified": return "bg-ws-red-light text-ws-red";
+    default: return "bg-gray-05 text-gray-50";
+  }
+}
+
+export function getComplianceStatusLabel(status: string): string {
+  switch (status) {
+    case "pass": return "Pass";
+    case "hold_for_review": return "Hold for Review";
+    case "disqualified": return "Disqualified";
+    default: return status;
+  }
+}
+
+export function getVerticalLabel(vertical: string): string {
+  const labels: Record<string, string> = {
+    retail_banking: "Retail Banking",
+    commercial_banking: "Commercial Banking",
+    mortgage_lending: "Mortgage Lending",
+    wealth_management: "Wealth Management",
+  };
+  return labels[vertical] || vertical;
+}
+
+export function getDimensionLabel(dimension: string): string {
+  const labels: Record<string, string> = {
+    demographic_fit: "Demographic Fit",
+    financial_qualification: "Financial Qualification",
+    behavioral_engagement: "Behavioral Engagement",
+    intent_signals: "Intent Signals",
+    compliance_readiness: "Compliance Readiness",
+  };
+  return labels[dimension] || dimension;
+}
+
+export function getDimensionColor(dimension: string): string {
+  const colors: Record<string, string> = {
+    demographic_fit: "bg-blue-500",
+    financial_qualification: "bg-ws-green",
+    behavioral_engagement: "bg-ws-orange",
+    intent_signals: "bg-purple-500",
+    compliance_readiness: "bg-teal-500",
+  };
+  return colors[dimension] || "bg-gray-30";
+}
+
+export function getDimensionBarColor(dimension: string): string {
+  const colors: Record<string, string> = {
+    demographic_fit: "bg-blue-100",
+    financial_qualification: "bg-ws-green-light",
+    behavioral_engagement: "bg-ws-orange-light",
+    intent_signals: "bg-purple-100",
+    compliance_readiness: "bg-teal-100",
+  };
+  return colors[dimension] || "bg-gray-05";
+}

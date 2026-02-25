@@ -125,6 +125,17 @@ const clients = [
   { id: "c008", first_name: "David", last_name: "Kim", email: "david.kim@email.com", age: 24, city: "Toronto", province: "ON", occupation: "Graduate Student", annual_income: 28000, account_open_date: "2025-01-10", total_balance: 4200, direct_deposit_active: 0 },
   { id: "c009", first_name: "Fatima", last_name: "Hassan", email: "fatima.hassan@email.com", age: 41, city: "Edmonton", province: "AB", occupation: "Pharmacist", annual_income: 125000, account_open_date: "2023-09-05", total_balance: 38600, direct_deposit_active: 1 },
   { id: "c010", first_name: "James", last_name: "Whitehorse", email: "james.whitehorse@email.com", age: 34, city: "Yellowknife", province: "NT", occupation: "Mining Technologist", annual_income: 98000, account_open_date: "2024-05-20", total_balance: 67800, direct_deposit_active: 1 },
+  // ── New Tier B leads ────────────────────────────────────────────────
+  { id: "c011", first_name: "Naveen", last_name: "Kapoor", email: "naveen.kapoor@email.com", age: 48, city: "Vancouver", province: "BC", occupation: "Chief Financial Officer", annual_income: 280000, account_open_date: "2024-01-10", total_balance: 185000, direct_deposit_active: 1 },
+  { id: "c012", first_name: "Helene", last_name: "Dufresne", email: "helene.dufresne@email.com", age: 55, city: "Montreal", province: "QC", occupation: "Corporate Lawyer", annual_income: 220000, account_open_date: "2023-08-20", total_balance: 200000, direct_deposit_active: 1 },
+  { id: "c013", first_name: "Amit", last_name: "Sundaram", email: "amit.sundaram@email.com", age: 50, city: "Richmond Hill", province: "ON", occupation: "Cardiologist", annual_income: 310000, account_open_date: "2023-11-05", total_balance: 210000, direct_deposit_active: 1 },
+  { id: "c014", first_name: "Danielle", last_name: "Fournier", email: "danielle.fournier@email.com", age: 44, city: "Ottawa", province: "ON", occupation: "VP of Engineering", annual_income: 250000, account_open_date: "2024-02-15", total_balance: 200000, direct_deposit_active: 1 },
+  { id: "c015", first_name: "Wei", last_name: "Chen", email: "wei.chen@email.com", age: 42, city: "Markham", province: "ON", occupation: "Business Owner", annual_income: 180000, account_open_date: "2024-04-10", total_balance: 95000, direct_deposit_active: 1 },
+  { id: "c016", first_name: "Yuki", last_name: "Tanaka", email: "yuki.tanaka@email.com", age: 39, city: "Calgary", province: "AB", occupation: "Entrepreneur", annual_income: 150000, account_open_date: "2024-06-20", total_balance: 80000, direct_deposit_active: 1 },
+  { id: "c017", first_name: "Tariq", last_name: "Al-Rashid", email: "tariq.alrashid@email.com", age: 46, city: "Mississauga", province: "ON", occupation: "Founder & CEO", annual_income: 200000, account_open_date: "2024-01-25", total_balance: 110000, direct_deposit_active: 1 },
+  { id: "c018", first_name: "Sophie", last_name: "Bergeron", email: "sophie.bergeron@email.com", age: 33, city: "Kitchener", province: "ON", occupation: "Product Manager", annual_income: 105000, account_open_date: "2024-07-01", total_balance: 45000, direct_deposit_active: 1 },
+  { id: "c019", first_name: "Michael", last_name: "O'Brien", email: "michael.obrien@email.com", age: 37, city: "Edmonton", province: "AB", occupation: "Civil Engineer", annual_income: 115000, account_open_date: "2024-03-18", total_balance: 55000, direct_deposit_active: 1 },
+  { id: "c020", first_name: "Amara", last_name: "Diallo", email: "amara.diallo@email.com", age: 30, city: "Winnipeg", province: "MB", occupation: "Marketing Manager", annual_income: 72000, account_open_date: "2024-09-01", total_balance: 28000, direct_deposit_active: 1 },
 ];
 
 // ── Insert clients ─────────────────────────────────────────────────────
@@ -737,6 +748,572 @@ function seedC010() {
   }
 }
 
+// ── c011 - Naveen Kapoor (Wealth Management) ─────────────────────────
+function seedC011() {
+  const cid = "c011";
+  const cnum = "011";
+  let txCount = 0;
+
+  // Biweekly salary
+  for (const d of biweeklyDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: 10769, description: "DIRECT DEP - LULULEMON ATHLETICA", category: "salary_deposit", merchant_name: "LULULEMON ATHLETICA", is_recurring: 1, type: "direct-deposit" });
+  }
+
+  // Monthly: RBC Dominion Securities RRSP
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -4000, description: "RBC DOMINION SECURITIES RRSP", category: "rrsp_contribution", merchant_name: "RBC DOMINION SECURITIES", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: CI Investments TFSA
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -1500, description: "CI INVESTMENTS TFSA", category: "tfsa_contribution", merchant_name: "CI INVESTMENTS", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: BC Hydro
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -195, description: "BC HYDRO", category: "utilities", merchant_name: "BC HYDRO", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Telus
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -140, description: "TELUS MOBILITY", category: "subscription", merchant_name: "TELUS MOBILITY", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Manulife Insurance
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -310, description: "MANULIFE FINANCIAL INS", category: "insurance_premium", merchant_name: "MANULIFE FINANCIAL", is_recurring: 1, type: "pad" });
+  }
+
+  // One-time: RSU vesting deposit (large transfer ≥$10k)
+  txCount++;
+  insertTx({ id: txId(cnum, txCount), client_id: cid, date: "2025-11-05", amount: 42000, description: "WIRE TRF RSU VEST LULULEMON", category: "large_transfer", merchant_name: "LULULEMON ATHLETICA", is_recurring: 0, type: "wire" });
+
+  // Weekly: Whole Foods groceries
+  for (const d of weeklyDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(-200, -120), description: "WHOLE FOODS MARKET", category: "groceries", merchant_name: "WHOLE FOODS MARKET", is_recurring: 0, type: "debit" });
+  }
+}
+
+// ── c012 - Helene Dufresne (Wealth Management) ───────────────────────
+function seedC012() {
+  const cid = "c012";
+  const cnum = "012";
+  let txCount = 0;
+
+  // Biweekly salary
+  for (const d of biweeklyDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: 8462, description: "DIRECT DEP - NORTON ROSE FULBRIGHT", category: "salary_deposit", merchant_name: "NORTON ROSE FULBRIGHT", is_recurring: 1, type: "direct-deposit" });
+  }
+
+  // Monthly: National Bank RRSP
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -3500, description: "NATIONAL BANK SECURITIES RRSP", category: "rrsp_contribution", merchant_name: "NATIONAL BANK SECURITIES", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Fidelity TFSA
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -800, description: "FIDELITY INVESTMENTS TFSA", category: "investment_competitor", merchant_name: "FIDELITY INVESTMENTS", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Hydro-Quebec
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -165, description: "HYDRO-QUEBEC", category: "utilities", merchant_name: "HYDRO-QUEBEC", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Videotron
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -125, description: "VIDEOTRON LTEE", category: "subscription", merchant_name: "VIDEOTRON LTEE", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Sun Life Insurance
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -275, description: "SUN LIFE FINANCIAL INS", category: "insurance_premium", merchant_name: "SUN LIFE FINANCIAL", is_recurring: 1, type: "pad" });
+  }
+
+  // One-time: Condo sale proceeds (large transfer)
+  txCount++;
+  insertTx({ id: txId(cnum, txCount), client_id: cid, date: "2025-10-20", amount: 85000, description: "NOTARY TRF CONDO SALE PROCEEDS", category: "large_transfer", merchant_name: "ME LEBLANC NOTAIRE", is_recurring: 0, type: "wire" });
+
+  // Weekly: IGA groceries
+  for (const d of weeklyDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(-160, -90), description: "IGA #892", category: "groceries", merchant_name: "IGA #892", is_recurring: 0, type: "debit" });
+  }
+}
+
+// ── c013 - Amit Sundaram (Wealth Management) ─────────────────────────
+function seedC013() {
+  const cid = "c013";
+  const cnum = "013";
+  let txCount = 0;
+
+  // Biweekly salary
+  for (const d of biweeklyDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: 11923, description: "DIRECT DEP - MARKHAM STOUFFVILLE HOSPITAL", category: "salary_deposit", merchant_name: "MARKHAM STOUFFVILLE HOSPITAL", is_recurring: 1, type: "direct-deposit" });
+  }
+
+  // Monthly: CIBC Wood Gundy
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -5000, description: "CIBC WOOD GUNDY RRSP", category: "rrsp_contribution", merchant_name: "CIBC WOOD GUNDY", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: BMO InvestorLine
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -2000, description: "BMO INVESTORLINE TFSA", category: "investment_competitor", merchant_name: "BMO INVESTORLINE", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Enbridge Gas
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -210, description: "ENBRIDGE GAS", category: "utilities", merchant_name: "ENBRIDGE GAS", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Rogers
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -155, description: "ROGERS CABLE", category: "subscription", merchant_name: "ROGERS CABLE", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Great-West Life
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -420, description: "GREAT-WEST LIFE INS", category: "insurance_premium", merchant_name: "GREAT-WEST LIFE", is_recurring: 1, type: "pad" });
+  }
+
+  // One-time: Consulting income (large transfer)
+  txCount++;
+  insertTx({ id: txId(cnum, txCount), client_id: cid, date: "2026-01-10", amount: 35000, description: "WIRE TRF MEDICAL CONSULTING FEE", category: "large_transfer", merchant_name: "SUNNYBROOK HEALTH SCIENCES", is_recurring: 0, type: "wire" });
+
+  // Biweekly: Longos groceries
+  for (const d of biweeklyDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(-280, -180), description: "LONGOS #45", category: "groceries", merchant_name: "LONGOS #45", is_recurring: 0, type: "debit" });
+  }
+}
+
+// ── c014 - Danielle Fournier (Wealth Management) ─────────────────────
+function seedC014() {
+  const cid = "c014";
+  const cnum = "014";
+  let txCount = 0;
+
+  // Biweekly salary
+  for (const d of biweeklyDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: 9615, description: "DIRECT DEP - SHOPIFY INC", category: "salary_deposit", merchant_name: "SHOPIFY INC", is_recurring: 1, type: "direct-deposit" });
+  }
+
+  // Monthly: Scotia iTRADE RRSP
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -3500, description: "SCOTIA iTRADE RRSP", category: "rrsp_contribution", merchant_name: "SCOTIA iTRADE", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Questrade TFSA
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -1000, description: "QUESTRADE TFSA", category: "tfsa_contribution", merchant_name: "QUESTRADE", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Hydro Ottawa
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -135, description: "HYDRO OTTAWA", category: "utilities", merchant_name: "HYDRO OTTAWA", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Bell Canada
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -130, description: "BELL CANADA", category: "subscription", merchant_name: "BELL CANADA", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Canada Life Insurance
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -290, description: "CANADA LIFE INS", category: "insurance_premium", merchant_name: "CANADA LIFE", is_recurring: 1, type: "pad" });
+  }
+
+  // One-time: Stock options exercise (large transfer)
+  txCount++;
+  insertTx({ id: txId(cnum, txCount), client_id: cid, date: "2025-12-15", amount: 55000, description: "WIRE TRF SHOPIFY STOCK OPTION EXERCISE", category: "large_transfer", merchant_name: "SHOPIFY INC", is_recurring: 0, type: "wire" });
+
+  // Weekly: Farm Boy groceries
+  for (const d of weeklyDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(-140, -80), description: "FARM BOY OTTAWA", category: "groceries", merchant_name: "FARM BOY OTTAWA", is_recurring: 0, type: "debit" });
+  }
+}
+
+// ── c015 - Wei Chen (Commercial Banking) ─────────────────────────────
+function seedC015() {
+  const cid = "c015";
+  const cnum = "015";
+  let txCount = 0;
+
+  // Monthly: Business revenue deposits (irregular)
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(12000, 18000), description: "INTERAC E-TRF CHEN TECH SOLUTIONS INC", category: "salary_deposit", merchant_name: "CHEN TECH SOLUTIONS INC", is_recurring: 0, type: "e-transfer" });
+  }
+
+  // Monthly: RBC RRSP
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -2500, description: "RBC DIRECT INVESTING RRSP", category: "rrsp_contribution", merchant_name: "RBC DIRECT INVESTING", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Business expenses
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -3500, description: "AWS CLOUD SERVICES", category: "business_expense", merchant_name: "AMAZON WEB SERVICES", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Office lease
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -2800, description: "REGUS OFFICE LEASE MARKHAM", category: "rent", merchant_name: "REGUS", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Enbridge Gas
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -145, description: "ENBRIDGE GAS", category: "utilities", merchant_name: "ENBRIDGE GAS", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Rogers Business
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -180, description: "ROGERS BUSINESS", category: "subscription", merchant_name: "ROGERS BUSINESS", is_recurring: 1, type: "pad" });
+  }
+
+  // One-time: Client contract payment (large transfer)
+  txCount++;
+  insertTx({ id: txId(cnum, txCount), client_id: cid, date: "2025-11-20", amount: 28000, description: "WIRE TRF CONTRACT PAYMENT CIBC", category: "large_transfer", merchant_name: "CIBC COMMERCIAL", is_recurring: 0, type: "wire" });
+
+  // Quarterly: CRA tax installments
+  for (const d of ["2025-10-15", "2026-01-15"]) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -6000, description: "CRA TAX INSTALLMENT", category: "other", merchant_name: "CRA", is_recurring: 0, type: "pad" });
+  }
+}
+
+// ── c016 - Yuki Tanaka (Commercial Banking) ──────────────────────────
+function seedC016() {
+  const cid = "c016";
+  const cnum = "016";
+  let txCount = 0;
+
+  // Monthly: Business revenue
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(10000, 15000), description: "INTERAC E-TRF TANAKA DESIGN STUDIO", category: "salary_deposit", merchant_name: "TANAKA DESIGN STUDIO", is_recurring: 0, type: "e-transfer" });
+  }
+
+  // Monthly: TD Waterhouse RRSP
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -2000, description: "TD WATERHOUSE RRSP", category: "rrsp_contribution", merchant_name: "TD WATERHOUSE", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Business supplies
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(-2500, -1500), description: "ADOBE CREATIVE CLOUD PRO", category: "business_expense", merchant_name: "ADOBE SYSTEMS", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: ATCO Gas
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -155, description: "ATCO GAS", category: "utilities", merchant_name: "ATCO GAS", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Telus Business
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -135, description: "TELUS BUSINESS", category: "subscription", merchant_name: "TELUS BUSINESS", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Manulife Insurance
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -245, description: "MANULIFE BUSINESS INS", category: "insurance_premium", merchant_name: "MANULIFE BUSINESS INS", is_recurring: 1, type: "pad" });
+  }
+
+  // One-time: Equipment sale proceeds (large transfer)
+  txCount++;
+  insertTx({ id: txId(cnum, txCount), client_id: cid, date: "2026-01-08", amount: 18000, description: "WIRE TRF EQUIPMENT SALE", category: "large_transfer", merchant_name: "KIJIJI BUYER", is_recurring: 0, type: "wire" });
+
+  // Quarterly: CRA tax installments
+  for (const d of ["2025-10-15", "2026-01-15"]) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -4500, description: "CRA TAX INSTALLMENT", category: "other", merchant_name: "CRA", is_recurring: 0, type: "pad" });
+  }
+
+  // Biweekly: Co-op groceries
+  for (const d of biweeklyDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(-180, -100), description: "CALGARY CO-OP #34", category: "groceries", merchant_name: "CALGARY CO-OP #34", is_recurring: 0, type: "debit" });
+  }
+}
+
+// ── c017 - Tariq Al-Rashid (Commercial Banking) ─────────────────────
+function seedC017() {
+  const cid = "c017";
+  const cnum = "017";
+  let txCount = 0;
+
+  // Monthly: Business revenue
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(14000, 20000), description: "INTERAC E-TRF RASHID LOGISTICS INC", category: "salary_deposit", merchant_name: "RASHID LOGISTICS INC", is_recurring: 0, type: "e-transfer" });
+  }
+
+  // Monthly: CIBC Investor's Edge RRSP
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -3000, description: "CIBC INVESTORS EDGE RRSP", category: "rrsp_contribution", merchant_name: "CIBC INVESTORS EDGE", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Scotiabank TFSA
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -1000, description: "SCOTIABANK TFSA PAD", category: "tfsa_contribution", merchant_name: "SCOTIABANK", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Fleet expenses
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(-4000, -3000), description: "PETRO-CANADA FLEET CARD", category: "business_expense", merchant_name: "PETRO-CANADA", is_recurring: 1, type: "debit" });
+  }
+
+  // Monthly: Enbridge Gas
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -180, description: "ENBRIDGE GAS", category: "utilities", merchant_name: "ENBRIDGE GAS", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Bell Business
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -165, description: "BELL BUSINESS", category: "subscription", merchant_name: "BELL BUSINESS", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Intact Insurance
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -520, description: "INTACT INSURANCE COMMERCIAL", category: "insurance_premium", merchant_name: "INTACT INSURANCE", is_recurring: 1, type: "pad" });
+  }
+
+  // One-time: Government contract payment (large transfer)
+  txCount++;
+  insertTx({ id: txId(cnum, txCount), client_id: cid, date: "2025-12-01", amount: 45000, description: "WIRE TRF GOVT CONTRACT PYMT", category: "large_transfer", merchant_name: "PUBLIC SERVICES CANADA", is_recurring: 0, type: "wire" });
+
+  // Quarterly: CRA tax installments
+  for (const d of ["2025-10-15", "2026-01-15"]) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -7000, description: "CRA TAX INSTALLMENT", category: "other", merchant_name: "CRA", is_recurring: 0, type: "pad" });
+  }
+}
+
+// ── c018 - Sophie Bergeron (Mortgage Lending) ────────────────────────
+function seedC018() {
+  const cid = "c018";
+  const cnum = "018";
+  let txCount = 0;
+
+  // Biweekly salary
+  for (const d of biweeklyDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: 4038, description: "DIRECT DEP - COMMUNITECH HUB", category: "salary_deposit", merchant_name: "COMMUNITECH HUB", is_recurring: 1, type: "direct-deposit" });
+  }
+
+  // Monthly: TD Mortgage
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -1850, description: "TD CANADA TRUST MORTGAGE", category: "mortgage_payment", merchant_name: "TD CANADA TRUST", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Questrade RRSP
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -800, description: "QUESTRADE RRSP PAD", category: "rrsp_contribution", merchant_name: "QUESTRADE", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Wealthsimple competitor TFSA
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -400, description: "TD DIRECT INVESTING TFSA", category: "investment_competitor", merchant_name: "TD DIRECT INVESTING", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Kitchener-Wilmot Hydro
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -110, description: "KITCHENER-WILMOT HYDRO", category: "utilities", merchant_name: "KITCHENER-WILMOT HYDRO", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Koodo Mobile
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -65, description: "KOODO MOBILE", category: "subscription", merchant_name: "KOODO MOBILE", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Insurance
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -140, description: "COOPERATORS INS", category: "insurance_premium", merchant_name: "COOPERATORS", is_recurring: 1, type: "pad" });
+  }
+
+  // One-time: Bonus deposit (large transfer)
+  txCount++;
+  insertTx({ id: txId(cnum, txCount), client_id: cid, date: "2026-02-01", amount: 15000, description: "WIRE TRF ANNUAL BONUS COMMUNITECH", category: "large_transfer", merchant_name: "COMMUNITECH HUB", is_recurring: 0, type: "wire" });
+
+  // Weekly: Zehrs groceries
+  for (const d of weeklyDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(-110, -70), description: "ZEHRS MARKETS #67", category: "groceries", merchant_name: "ZEHRS MARKETS #67", is_recurring: 0, type: "debit" });
+  }
+}
+
+// ── c019 - Michael O'Brien (Mortgage Lending) ────────────────────────
+function seedC019() {
+  const cid = "c019";
+  const cnum = "019";
+  let txCount = 0;
+
+  // Biweekly salary
+  for (const d of biweeklyDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: 4423, description: "DIRECT DEP - AECON GROUP", category: "salary_deposit", merchant_name: "AECON GROUP", is_recurring: 1, type: "direct-deposit" });
+  }
+
+  // Monthly: Scotiabank Mortgage
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -2100, description: "SCOTIABANK MORTGAGE PAD", category: "mortgage_payment", merchant_name: "SCOTIABANK", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: RBC RRSP
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -1200, description: "RBC DIRECT INVESTING RRSP", category: "rrsp_contribution", merchant_name: "RBC DIRECT INVESTING", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: BMO TFSA
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -500, description: "BMO INVESTORLINE TFSA", category: "investment_competitor", merchant_name: "BMO INVESTORLINE", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: EPCOR Utilities
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -175, description: "EPCOR UTILITIES", category: "utilities", merchant_name: "EPCOR UTILITIES", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Telus
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -95, description: "TELUS MOBILITY", category: "subscription", merchant_name: "TELUS MOBILITY", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Great-West Life Insurance
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -195, description: "GREAT-WEST LIFE INS", category: "insurance_premium", merchant_name: "GREAT-WEST LIFE", is_recurring: 1, type: "pad" });
+  }
+
+  // One-time: Inheritance deposit (large transfer)
+  txCount++;
+  insertTx({ id: txId(cnum, txCount), client_id: cid, date: "2025-10-25", amount: 32000, description: "INTERAC E-TRF ESTATE OF P OBRIEN", category: "large_transfer", merchant_name: "ESTATE OF P OBRIEN", is_recurring: 0, type: "e-transfer" });
+
+  // Weekly: Superstore groceries
+  for (const d of weeklyDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(-130, -80), description: "SUPERSTORE #189", category: "groceries", merchant_name: "SUPERSTORE #189", is_recurring: 0, type: "debit" });
+  }
+}
+
+// ── c020 - Amara Diallo (Retail Banking) ─────────────────────────────
+function seedC020() {
+  const cid = "c020";
+  const cnum = "020";
+  let txCount = 0;
+
+  // Biweekly salary
+  for (const d of biweeklyDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: 2769, description: "DIRECT DEP - WAWANESA MUTUAL INS", category: "salary_deposit", merchant_name: "WAWANESA MUTUAL INS", is_recurring: 1, type: "direct-deposit" });
+  }
+
+  // Monthly: Scotiabank TFSA
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -500, description: "SCOTIABANK TFSA PAD", category: "tfsa_contribution", merchant_name: "SCOTIABANK", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: TD RRSP
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -300, description: "TD DIRECT INVESTING RRSP", category: "rrsp_contribution", merchant_name: "TD DIRECT INVESTING", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Manitoba Hydro
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -125, description: "MANITOBA HYDRO", category: "utilities", merchant_name: "MANITOBA HYDRO", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: MTS (Bell)
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -90, description: "BELL MTS", category: "subscription", merchant_name: "BELL MTS", is_recurring: 1, type: "pad" });
+  }
+
+  // Monthly: Rent
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -1200, description: "INTERAC E-TRF LANDLORD", category: "rent", merchant_name: "LANDLORD", is_recurring: 1, type: "e-transfer" });
+  }
+
+  // Monthly: Insurance
+  for (const d of monthDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -95, description: "WAWANESA MUTUAL INS", category: "insurance_premium", merchant_name: "WAWANESA MUTUAL INS", is_recurring: 1, type: "pad" });
+  }
+
+  // One-time: Signing bonus from new job (large transfer)
+  txCount++;
+  insertTx({ id: txId(cnum, txCount), client_id: cid, date: "2025-09-15", amount: 12000, description: "WIRE TRF SIGNING BONUS WAWANESA", category: "large_transfer", merchant_name: "WAWANESA MUTUAL INS", is_recurring: 0, type: "wire" });
+
+  // Weekly: Safeway groceries
+  for (const d of weeklyDates()) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(-100, -60), description: "SAFEWAY #412", category: "groceries", merchant_name: "SAFEWAY #412", is_recurring: 0, type: "debit" });
+  }
+
+  // ~6 random: Tim Hortons
+  for (const d of randomDates(6)) {
+    txCount++;
+    insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(-12, -5), description: "TIM HORTONS", category: "dining", merchant_name: "TIM HORTONS", is_recurring: 0, type: "debit" });
+  }
+}
+
 // ── Run all transaction seeds inside a transaction ─────────────────────
 
 const seedAllTransactions = db.transaction(() => {
@@ -750,6 +1327,16 @@ const seedAllTransactions = db.transaction(() => {
   seedC008();
   seedC009();
   seedC010();
+  seedC011();
+  seedC012();
+  seedC013();
+  seedC014();
+  seedC015();
+  seedC016();
+  seedC017();
+  seedC018();
+  seedC019();
+  seedC020();
 });
 seedAllTransactions();
 
