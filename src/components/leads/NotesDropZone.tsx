@@ -18,6 +18,9 @@ interface Props {
 
 type Status = "idle" | "dragging" | "reading" | "analyzing" | "success" | "error";
 
+const VALID_EXTENSIONS = [".txt", ".docx", ".doc", ".xlsx", ".xls", ".pdf"];
+const BINARY_EXTENSIONS = [".xlsx", ".xls", ".pdf"];
+
 export default function NotesDropZone({ clientId, clientName, existingAnalyses }: Props) {
   const router = useRouter();
   const [status, setStatus] = useState<Status>("idle");
@@ -25,88 +28,103 @@ export default function NotesDropZone({ clientId, clientName, existingAnalyses }
   const [errorMessage, setErrorMessage] = useState("");
   const [fileName, setFileName] = useState("");
   const [redirectData, setRedirectData] = useState<RedirectData | null>(null);
+  const [fileProgress, setFileProgress] = useState({ current: 0, total: 0 });
   const dragCounter = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const processFile = useCallback(async (file: File) => {
-    const validTypes = [".txt", ".docx", ".doc", ".xlsx", ".xls", ".pdf"];
+  /** Upload & analyze a single file, returning true on success */
+  const processOneFile = useCallback(async (file: File): Promise<boolean> => {
     const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
-    if (!validTypes.includes(ext)) {
+    if (!VALID_EXTENSIONS.includes(ext)) return false;
+
+    const isBinary = BINARY_EXTENSIONS.includes(ext);
+
+    if (!isBinary) {
+      try {
+        const text = await file.text();
+        if (!text.trim()) return false;
+      } catch {
+        return false;
+      }
+    }
+
+    let res: Response;
+    if (isBinary) {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("clientId", clientId);
+      res = await fetch("/api/analyze-notes", { method: "POST", body: formData });
+    } else {
+      const text = await file.text();
+      res = await fetch("/api/analyze-notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientId, notesText: text }),
+      });
+    }
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || "Analysis failed");
+    }
+
+    const data = await res.json();
+
+    if (data.redirect) {
+      setRedirectData({ clientId: data.clientId, clientName: data.clientName, score: data.score });
+      return true;
+    }
+
+    setAnalyses(prev => [data.noteAnalysis, ...prev]);
+    return true;
+  }, [clientId]);
+
+  /** Process multiple files sequentially */
+  const processFiles = useCallback(async (files: File[]) => {
+    const valid = files.filter(f => {
+      const ext = f.name.slice(f.name.lastIndexOf(".")).toLowerCase();
+      return VALID_EXTENSIONS.includes(ext);
+    });
+
+    if (valid.length === 0) {
       setStatus("error");
-      setErrorMessage("Please upload a .txt, .docx, .xlsx, or .pdf file");
+      setErrorMessage("No supported files found. Please upload .txt, .docx, .xlsx, or .pdf files");
       return;
     }
 
-    setFileName(file.name);
-    setStatus("reading");
+    setRedirectData(null);
+    setFileProgress({ current: 0, total: valid.length });
+    let lastRedirect: RedirectData | null = null;
 
-    // Binary formats (Excel, PDF) must be parsed server-side.
-    const isBinary = [".xlsx", ".xls", ".pdf"].includes(ext);
+    for (let i = 0; i < valid.length; i++) {
+      const file = valid[i];
+      setFileName(file.name);
+      setFileProgress({ current: i + 1, total: valid.length });
+      setStatus(i === 0 ? "reading" : "analyzing");
 
-    if (!isBinary) {
-      let text: string;
+      // Brief pause to show file name before analyzing
+      setStatus("analyzing");
+
       try {
-        text = await file.text();
-      } catch {
+        await processOneFile(file);
+      } catch (err) {
         setStatus("error");
-        setErrorMessage("Failed to read file");
-        return;
-      }
-
-      if (!text.trim()) {
-        setStatus("error");
-        setErrorMessage("File appears to be empty");
+        setErrorMessage(
+          `${file.name}: ${err instanceof Error ? err.message : "Analysis failed"}`
+        );
         return;
       }
     }
 
-    setStatus("analyzing");
+    setStatus("success");
 
-    try {
-      let res: Response;
-
-      if (isBinary) {
-        // Send as FormData — server parses the binary file
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("clientId", clientId);
-        res = await fetch("/api/analyze-notes", {
-          method: "POST",
-          body: formData,
-        });
-      } else {
-        // Send as JSON — text read client-side
-        const text = await file.text();
-        res = await fetch("/api/analyze-notes", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ clientId, notesText: text }),
-        });
-      }
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Analysis failed");
-      }
-
-      const data = await res.json();
-
-      if (data.redirect) {
-        // AI detected a different person — new lead was created
-        setRedirectData({ clientId: data.clientId, clientName: data.clientName, score: data.score });
-        setStatus("success");
-        setTimeout(() => router.push(`/leads/${data.clientId}`), 2500);
-      } else {
-        // Same client — supplementary analysis
-        setAnalyses(prev => [data.noteAnalysis, ...prev]);
-        setStatus("success");
-        setTimeout(() => setStatus("idle"), 4000);
-      }
-    } catch (err) {
-      setStatus("error");
-      setErrorMessage(err instanceof Error ? err.message : "Analysis failed");
+    if (redirectData || lastRedirect) {
+      const rd = redirectData ?? lastRedirect;
+      if (rd) setTimeout(() => router.push(`/leads/${rd.clientId}`), 2500);
+    } else {
+      setTimeout(() => setStatus("idle"), 4000);
     }
-  }, [clientId]);
+  }, [processOneFile, router, redirectData]);
 
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
@@ -127,15 +145,19 @@ export default function NotesDropZone({ clientId, clientName, existingAnalyses }
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     dragCounter.current = 0;
-    const file = e.dataTransfer.files[0];
-    if (file) processFile(file);
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) processFiles(files);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) processFile(file);
+    const files = Array.from(e.target.files ?? []);
+    if (files.length > 0) processFiles(files);
     e.target.value = "";
   };
+
+  const progressLabel = fileProgress.total > 1
+    ? ` (${fileProgress.current} of ${fileProgress.total})`
+    : "";
 
   return (
     <div className="space-y-4">
@@ -162,6 +184,7 @@ export default function NotesDropZone({ clientId, clientName, existingAnalyses }
           ref={fileInputRef}
           type="file"
           accept=".txt,.docx,.doc,.xlsx,.xls,.pdf"
+          multiple
           onChange={handleFileSelect}
           className="hidden"
         />
@@ -170,7 +193,7 @@ export default function NotesDropZone({ clientId, clientName, existingAnalyses }
           <>
             <UploadIcon />
             <p className="text-sm font-medium text-dune mt-2">Drop notes or statements here</p>
-            <p className="text-xs text-gray-50 mt-1">or click to browse &middot; .txt, .docx, .xlsx, .pdf</p>
+            <p className="text-xs text-gray-50 mt-1">or click to browse &middot; .txt, .docx, .xlsx, .pdf &middot; multiple files OK</p>
           </>
         )}
 
@@ -185,7 +208,7 @@ export default function NotesDropZone({ clientId, clientName, existingAnalyses }
           <>
             <div className="inline-block w-6 h-6 border-2 border-ws-orange border-t-transparent rounded-full animate-spin" />
             <p className="text-sm font-medium text-dune mt-2">
-              {status === "reading" ? "Reading file..." : `Analyzing ${fileName}...`}
+              Analyzing {fileName}...{progressLabel}
             </p>
             <p className="text-xs text-gray-50 mt-1">Claude is reviewing the document</p>
           </>
@@ -194,7 +217,11 @@ export default function NotesDropZone({ clientId, clientName, existingAnalyses }
         {status === "success" && !redirectData && (
           <>
             <CheckIcon />
-            <p className="text-sm font-semibold text-ws-green-dark mt-2">Analysis complete</p>
+            <p className="text-sm font-semibold text-ws-green-dark mt-2">
+              {fileProgress.total > 1
+                ? `${fileProgress.total} documents analyzed`
+                : "Analysis complete"}
+            </p>
           </>
         )}
 

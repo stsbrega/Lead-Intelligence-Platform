@@ -12,95 +12,107 @@ interface SuccessData {
   score: number;
 }
 
+const VALID_EXTENSIONS = [".txt", ".docx", ".doc", ".xlsx", ".xls", ".pdf"];
+const BINARY_EXTENSIONS = [".xlsx", ".xls", ".pdf"];
+
 export default function NewLeadDropZone() {
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [fileName, setFileName] = useState("");
   const [successData, setSuccessData] = useState<SuccessData | null>(null);
+  const [createdLeads, setCreatedLeads] = useState<SuccessData[]>([]);
+  const [fileProgress, setFileProgress] = useState({ current: 0, total: 0 });
   const dragCounter = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const leadCreation = useLeadCreation();
 
-  const processFile = useCallback(async (file: File) => {
-    const validTypes = [".txt", ".docx", ".doc", ".xlsx", ".xls", ".pdf"];
+  /** Upload & create a lead from a single file */
+  const processOneFile = useCallback(async (file: File): Promise<SuccessData> => {
     const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
-    if (!validTypes.includes(ext)) {
+    const isBinary = BINARY_EXTENSIONS.includes(ext);
+
+    if (!isBinary) {
+      const text = await file.text();
+      if (!text.trim()) throw new Error("File appears to be empty");
+    }
+
+    let res: Response;
+    if (isBinary) {
+      const formData = new FormData();
+      formData.append("file", file);
+      res = await fetch("/api/create-lead-from-notes", { method: "POST", body: formData });
+    } else {
+      const text = await file.text();
+      res = await fetch("/api/create-lead-from-notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notesText: text }),
+      });
+    }
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || "Lead creation failed");
+    }
+
+    return await res.json();
+  }, []);
+
+  /** Process multiple files sequentially */
+  const processFiles = useCallback(async (files: File[]) => {
+    const valid = files.filter(f => {
+      const ext = f.name.slice(f.name.lastIndexOf(".")).toLowerCase();
+      return VALID_EXTENSIONS.includes(ext);
+    });
+
+    if (valid.length === 0) {
       setStatus("error");
-      setErrorMessage("Please upload a .txt, .docx, .xlsx, or .pdf file");
+      setErrorMessage("No supported files found. Please upload .txt, .docx, .xlsx, or .pdf files");
       return;
     }
 
-    setFileName(file.name);
-    setStatus("reading");
-    leadCreation.startReading(file.name);
+    setCreatedLeads([]);
+    setFileProgress({ current: 0, total: valid.length });
 
-    // Binary formats (Excel, PDF) must be parsed server-side.
-    // Text formats can be read client-side for a quick empty-file check.
-    const isBinary = [".xlsx", ".xls", ".pdf"].includes(ext);
+    const results: SuccessData[] = [];
 
-    if (!isBinary) {
-      let text: string;
+    for (let i = 0; i < valid.length; i++) {
+      const file = valid[i];
+      setFileName(file.name);
+      setFileProgress({ current: i + 1, total: valid.length });
+
+      if (i === 0) {
+        setStatus("reading");
+        leadCreation.startReading(file.name);
+      }
+
+      setStatus("analyzing");
+      leadCreation.startAnalyzing(file.name);
+
       try {
-        text = await file.text();
-      } catch {
+        const data = await processOneFile(file);
+        results.push(data);
+        setCreatedLeads([...results]);
+      } catch (err) {
         setStatus("error");
-        setErrorMessage("Failed to read file");
-        return;
-      }
-
-      if (!text.trim()) {
-        setStatus("error");
-        setErrorMessage("File appears to be empty");
+        const msg = `${file.name}: ${err instanceof Error ? err.message : "Lead creation failed"}`;
+        setErrorMessage(msg);
+        leadCreation.setError(msg);
         return;
       }
     }
 
-    setStatus("analyzing");
-    leadCreation.startAnalyzing(file.name);
+    const lastResult = results[results.length - 1];
+    setSuccessData(lastResult);
+    setStatus("success");
+    leadCreation.setSuccess(lastResult.clientId, lastResult.clientName, lastResult.score);
 
-    try {
-      let res: Response;
-
-      if (isBinary) {
-        // Send as FormData — server will parse the binary file
-        const formData = new FormData();
-        formData.append("file", file);
-        res = await fetch("/api/create-lead-from-notes", {
-          method: "POST",
-          body: formData,
-        });
-      } else {
-        // Send as JSON — text already read client-side
-        const text = await file.text();
-        res = await fetch("/api/create-lead-from-notes", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ notesText: text }),
-        });
-      }
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Lead creation failed");
-      }
-
-      const data: SuccessData = await res.json();
-      setSuccessData(data);
-      setStatus("success");
-      leadCreation.setSuccess(data.clientId, data.clientName, data.score);
-
-      // Redirect to the new lead after a brief delay
-      setTimeout(() => {
-        router.push(`/leads/${data.clientId}`);
-      }, 2000);
-    } catch (err) {
-      setStatus("error");
-      const msg = err instanceof Error ? err.message : "Lead creation failed";
-      setErrorMessage(msg);
-      leadCreation.setError(msg);
-    }
-  }, [router, leadCreation]);
+    // Redirect to the last created lead after a brief delay
+    setTimeout(() => {
+      router.push(`/leads/${lastResult.clientId}`);
+    }, valid.length > 1 ? 3000 : 2000);
+  }, [router, leadCreation, processOneFile]);
 
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
@@ -121,15 +133,19 @@ export default function NewLeadDropZone() {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     dragCounter.current = 0;
-    const file = e.dataTransfer.files[0];
-    if (file) processFile(file);
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) processFiles(files);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) processFile(file);
+    const files = Array.from(e.target.files ?? []);
+    if (files.length > 0) processFiles(files);
     e.target.value = "";
   };
+
+  const progressLabel = fileProgress.total > 1
+    ? ` (${fileProgress.current} of ${fileProgress.total})`
+    : "";
 
   return (
     <div
@@ -154,6 +170,7 @@ export default function NewLeadDropZone() {
         ref={fileInputRef}
         type="file"
         accept=".txt,.docx,.doc,.xlsx,.xls,.pdf"
+        multiple
         onChange={handleFileSelect}
         className="hidden"
       />
@@ -169,7 +186,7 @@ export default function NewLeadDropZone() {
             The AI will extract client information, identify opportunities, and create a scored lead.
           </p>
           <p className="text-xs text-gray-30 mt-3">
-            or click to browse &middot; .txt, .docx, .xlsx, .pdf
+            or click to browse &middot; .txt, .docx, .xlsx, .pdf &middot; multiple files OK
           </p>
         </>
       )}
@@ -187,35 +204,76 @@ export default function NewLeadDropZone() {
         <>
           <div className="inline-block w-8 h-8 border-2 border-ws-orange border-t-transparent rounded-full animate-spin" />
           <p className="text-lg font-semibold text-dune mt-4">
-            {status === "reading" ? "Reading file..." : `Analyzing ${fileName}...`}
+            Analyzing {fileName}...{progressLabel}
           </p>
           <p className="text-sm text-gray-50 mt-2">
             Claude is extracting client info and scoring the lead
           </p>
+          {/* Show already-created leads during batch processing */}
+          {createdLeads.length > 0 && (
+            <div className="mt-4 space-y-1">
+              {createdLeads.map((lead, i) => (
+                <p key={i} className="text-xs text-ws-green-dark">
+                  ✓ {lead.clientName} — Score: {lead.score}/100
+                </p>
+              ))}
+            </div>
+          )}
         </>
       )}
 
       {status === "success" && successData && (
         <>
           <CheckIcon />
-          <p className="text-lg font-semibold text-ws-green-dark mt-4">
-            Lead created successfully
-          </p>
-          <p className="text-sm text-dune mt-2">
-            <span className="font-semibold">{successData.clientName}</span>
-            {" "}&middot; Score: <span className="font-semibold">{successData.score}</span>/100
-          </p>
-          <p className="text-xs text-gray-50 mt-2">
-            Redirecting to lead details...
-          </p>
+          {createdLeads.length > 1 ? (
+            <>
+              <p className="text-lg font-semibold text-ws-green-dark mt-4">
+                {createdLeads.length} leads created successfully
+              </p>
+              <div className="mt-3 space-y-1">
+                {createdLeads.map((lead, i) => (
+                  <p key={i} className="text-sm text-dune">
+                    <span className="font-semibold">{lead.clientName}</span>
+                    {" "}&middot; Score: <span className="font-semibold">{lead.score}</span>/100
+                  </p>
+                ))}
+              </div>
+              <p className="text-xs text-gray-50 mt-3">
+                Redirecting to {successData.clientName}...
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-lg font-semibold text-ws-green-dark mt-4">
+                Lead created successfully
+              </p>
+              <p className="text-sm text-dune mt-2">
+                <span className="font-semibold">{successData.clientName}</span>
+                {" "}&middot; Score: <span className="font-semibold">{successData.score}</span>/100
+              </p>
+              <p className="text-xs text-gray-50 mt-2">
+                Redirecting to lead details...
+              </p>
+            </>
+          )}
         </>
       )}
 
       {status === "error" && (
         <>
           <p className="text-lg font-semibold text-ws-red mt-2">{errorMessage}</p>
+          {createdLeads.length > 0 && (
+            <div className="mt-3 space-y-1">
+              <p className="text-xs text-gray-50">Previously created:</p>
+              {createdLeads.map((lead, i) => (
+                <p key={i} className="text-xs text-ws-green-dark">
+                  ✓ {lead.clientName} — Score: {lead.score}/100
+                </p>
+              ))}
+            </div>
+          )}
           <button
-            onClick={(e) => { e.stopPropagation(); setStatus("idle"); }}
+            onClick={(e) => { e.stopPropagation(); setStatus("idle"); setCreatedLeads([]); }}
             className="text-sm text-gray-50 underline mt-2"
           >
             Try again

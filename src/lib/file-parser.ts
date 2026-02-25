@@ -95,9 +95,24 @@ function extractExcelText(buffer: Buffer): string {
  *
  * pdf-parse v2 uses a class-based API:
  *   new PDFParse({ data }) → .getText() → TextResult.text
+ *
+ * In Next.js (Turbopack), the pdfjs-dist worker file can't be found at
+ * the bundled chunk path. We call PDFParse.setWorker() with the resolved
+ * path before instantiation so the library skips its auto-detection.
  */
 async function extractPdfText(buffer: Buffer): Promise<string> {
+  const path = await import("path");
   const { PDFParse } = await import("pdf-parse");
+
+  // Point to the real worker file so pdfjs-dist doesn't fail in Turbopack.
+  // On Windows the ESM loader requires a file:// URL, not a bare path.
+  const { pathToFileURL } = await import("url");
+  const workerAbs = path.resolve(
+    process.cwd(),
+    "node_modules/pdf-parse/dist/pdf-parse/cjs/pdf.worker.mjs"
+  );
+  PDFParse.setWorker(pathToFileURL(workerAbs).href);
+
   const parser = new PDFParse({ data: new Uint8Array(buffer) });
   const result = await parser.getText();
   await parser.destroy();
