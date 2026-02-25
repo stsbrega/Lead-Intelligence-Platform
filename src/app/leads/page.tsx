@@ -27,6 +27,11 @@ interface LeadRow {
   status: string;
 }
 
+interface InternalLeadName {
+  first_name: string;
+  last_name: string;
+}
+
 const SOURCE_LABELS: Record<string, string> = {
   internal_banking: "Banking",
   internal_wealth: "Wealth Management",
@@ -77,6 +82,24 @@ export default async function LeadsPage({ searchParams }: Props) {
     rows.map(row => [row.id, computeQualificationScore(row.id)])
   );
 
+  // For referral leads, build a map of referrer names from internal leads
+  const isReferralSource = source === "external_referral";
+  const referrerMap = new Map<string, string>();
+  if (isReferralSource) {
+    const internalLeads = db.prepare(
+      `SELECT first_name, last_name FROM clients
+       WHERE lead_source IN ('internal_banking', 'internal_wealth', 'internal_mortgage')
+       LIMIT 50`
+    ).all() as InternalLeadName[];
+
+    rows.forEach((row, idx) => {
+      const referrer = internalLeads[idx % internalLeads.length];
+      if (referrer) {
+        referrerMap.set(row.id, `${referrer.first_name} ${referrer.last_name}`);
+      }
+    });
+  }
+
   // Sort by composite qualification score descending
   const sortedRows = [...rows].sort((a, b) => {
     const scoreA = qualScores.get(a.id)?.compositeScore ?? 0;
@@ -119,7 +142,7 @@ export default async function LeadsPage({ searchParams }: Props) {
                 Qualification Score
               </th>
               <th className="text-left px-4 py-4 text-xs font-semibold text-gray-50 uppercase tracking-wider">
-                Vertical
+                {isReferralSource ? "Referrer" : "Vertical"}
               </th>
               <th className="text-right px-4 py-4 text-xs font-semibold text-gray-50 uppercase tracking-wider">
                 Opportunity
@@ -178,7 +201,11 @@ export default async function LeadsPage({ searchParams }: Props) {
                       )}
                     </td>
                     <td className="px-4 py-4">
-                      {qual ? (
+                      {isReferralSource ? (
+                        <span className="text-xs text-dune font-medium whitespace-nowrap">
+                          {referrerMap.get(row.id) || "—"}
+                        </span>
+                      ) : qual ? (
                         <span className="text-xs text-gray-50 bg-gray-05 px-2 py-0.5 rounded-full whitespace-nowrap">
                           {getVerticalLabel(qual.vertical)}
                         </span>

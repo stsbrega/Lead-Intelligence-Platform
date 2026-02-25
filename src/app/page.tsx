@@ -24,6 +24,7 @@ interface ClientRow {
   occupation: string;
   city: string;
   province: string;
+  lead_source: string;
 }
 
 export const dynamic = "force-dynamic";
@@ -31,7 +32,7 @@ export const dynamic = "force-dynamic";
 export default function DashboardPage() {
   // Compute qualification scores for all leads
   const qualScores = computeAllQualificationScores();
-  const allClients = db.prepare("SELECT id, first_name, last_name, occupation, city, province FROM clients").all() as ClientRow[];
+  const allClients = db.prepare("SELECT id, first_name, last_name, occupation, city, province, lead_source FROM clients").all() as ClientRow[];
 
   // Fetch AI analyses for signal data
   const analyses = db.prepare("SELECT a.score, a.signals FROM analyses a").all() as AnalysisRow[];
@@ -81,6 +82,22 @@ export default function DashboardPage() {
   const verticalCounts: Record<string, number> = {};
   for (const [, score] of qualScores) {
     verticalCounts[score.vertical] = (verticalCounts[score.vertical] || 0) + 1;
+  }
+
+  // Lead source distribution
+  const SOURCE_LABELS: Record<string, string> = {
+    internal_banking: "Banking",
+    internal_wealth: "Wealth Mgmt",
+    internal_mortgage: "Mortgage",
+    external_realty: "Realty Partners",
+    external_marketing: "Marketing Co.",
+    external_referral: "Referrals",
+    advisor_created: "Advisor Created",
+  };
+  const sourceCounts: Record<string, number> = {};
+  for (const client of allClients) {
+    const src = client.lead_source || "internal_banking";
+    sourceCounts[src] = (sourceCounts[src] || 0) + 1;
   }
 
   // Top leads sorted by composite score
@@ -199,6 +216,33 @@ export default function DashboardPage() {
           </div>
         </Card>
       </div>
+
+      {/* Lead Sources */}
+      <Card className="p-6 mb-8">
+        <h2 className="text-sm font-semibold text-gray-50 uppercase tracking-wider mb-4">
+          Lead Sources
+        </h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {Object.entries(sourceCounts)
+            .sort(([, a], [, b]) => b - a)
+            .map(([src, count]) => (
+              <div key={src} className="flex items-center gap-3">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-dune">{SOURCE_LABELS[src] || src}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className="flex-1 h-2 bg-gray-05 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-ws-green rounded-full"
+                        style={{ width: `${totalLeads > 0 ? (count / totalLeads) * 100 : 0}%` }}
+                      />
+                    </div>
+                    <span className="text-sm font-semibold text-gray-50 w-6 text-right">{count}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+        </div>
+      </Card>
 
       {/* Top Priority Leads */}
       <h2 className="text-sm font-semibold text-gray-50 uppercase tracking-wider mb-4">

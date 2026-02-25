@@ -61,8 +61,8 @@ export async function POST(request: NextRequest) {
 
     // Insert client record
     db.prepare(`
-      INSERT INTO clients (id, first_name, last_name, email, age, city, province, occupation, annual_income, account_open_date, total_balance, direct_deposit_active)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO clients (id, first_name, last_name, email, age, city, province, occupation, annual_income, account_open_date, total_balance, direct_deposit_active, lead_source)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       clientId,
       clientProfile.firstName,
@@ -75,7 +75,8 @@ export async function POST(request: NextRequest) {
       clientProfile.estimatedAnnualIncome,
       now.split("T")[0],
       0,
-      0
+      0,
+      "advisor_created"
     );
 
     // Insert analysis record
