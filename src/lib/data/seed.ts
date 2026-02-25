@@ -160,6 +160,18 @@ const clients = [
   { id: "c038", first_name: "Samira", last_name: "Johal", email: "samira.johal@email.com", age: 34, city: "Burnaby", province: "BC", occupation: "Financial Analyst", annual_income: 98000, account_open_date: "2025-09-25", total_balance: 36000, direct_deposit_active: 0, lead_source: "external_referral" },
   { id: "c039", first_name: "Tyler", last_name: "Brooks", email: "tyler.brooks@email.com", age: 60, city: "Kelowna", province: "BC", occupation: "Retired Exec", annual_income: 65000, account_open_date: "2025-07-15", total_balance: 215000, direct_deposit_active: 0, lead_source: "external_referral" },
   { id: "c040", first_name: "Preethi", last_name: "Ranganathan", email: "preethi.ranganathan@email.com", age: 42, city: "Markham", province: "ON", occupation: "Dermatologist", annual_income: 230000, account_open_date: "2025-08-01", total_balance: 145000, direct_deposit_active: 0, lead_source: "external_referral" },
+  // ── Internal: Wealth Management ─────────────────────────────────────
+  { id: "c041", first_name: "Gregory", last_name: "Harrington", email: "greg.harrington@email.com", age: 54, city: "Toronto", province: "ON", occupation: "Managing Director, Investment Banking", annual_income: 420000, account_open_date: "2023-06-01", total_balance: 325000, direct_deposit_active: 1, lead_source: "internal_wealth" },
+  { id: "c042", first_name: "Linda", last_name: "Tran", email: "linda.tran@email.com", age: 47, city: "Vancouver", province: "BC", occupation: "Restaurant Chain Owner", annual_income: 195000, account_open_date: "2024-02-10", total_balance: 142000, direct_deposit_active: 1, lead_source: "internal_wealth" },
+  { id: "c043", first_name: "Robert", last_name: "Fraser", email: "robert.fraser@email.com", age: 39, city: "Calgary", province: "AB", occupation: "Geologist", annual_income: 118000, account_open_date: "2024-09-15", total_balance: 58000, direct_deposit_active: 1, lead_source: "internal_wealth" },
+  { id: "c044", first_name: "Zara", last_name: "Hossain", email: "zara.hossain@email.com", age: 26, city: "Waterloo", province: "ON", occupation: "Junior Developer", annual_income: 68000, account_open_date: "2025-06-01", total_balance: 9500, direct_deposit_active: 1, lead_source: "internal_wealth" },
+  { id: "c045", first_name: "Margaret", last_name: "Bellefleur", email: "margaret.bellefleur@email.com", age: 63, city: "Ottawa", province: "ON", occupation: "Retired Federal Executive", annual_income: 72000, account_open_date: "2023-12-01", total_balance: 284000, direct_deposit_active: 0, lead_source: "internal_wealth" },
+  // ── Internal: Pine (Mortgage Partner) ───────────────────────────────
+  { id: "c046", first_name: "Jason", last_name: "Park", email: "jason.park@email.com", age: 31, city: "Toronto", province: "ON", occupation: "Product Manager", annual_income: 135000, account_open_date: "2024-04-15", total_balance: 78000, direct_deposit_active: 1, lead_source: "internal_mortgage" },
+  { id: "c047", first_name: "Natasha", last_name: "Volkov", email: "natasha.volkov@email.com", age: 37, city: "Mississauga", province: "ON", occupation: "Pharmacist", annual_income: 128000, account_open_date: "2024-01-20", total_balance: 95000, direct_deposit_active: 1, lead_source: "internal_mortgage" },
+  { id: "c048", first_name: "Andre", last_name: "Lemoine", email: "andre.lemoine@email.com", age: 44, city: "Montreal", province: "QC", occupation: "Real Estate Investor", annual_income: 165000, account_open_date: "2024-07-01", total_balance: 112000, direct_deposit_active: 0, lead_source: "internal_mortgage" },
+  { id: "c049", first_name: "Deepa", last_name: "Krishnamurthy", email: "deepa.krishnamurthy@email.com", age: 29, city: "Brampton", province: "ON", occupation: "Junior Accountant", annual_income: 55000, account_open_date: "2025-08-10", total_balance: 12000, direct_deposit_active: 1, lead_source: "internal_mortgage" },
+  { id: "c050", first_name: "Scott", last_name: "Henderson", email: "scott.henderson@email.com", age: 48, city: "Victoria", province: "BC", occupation: "Construction Manager", annual_income: 145000, account_open_date: "2023-10-15", total_balance: 168000, direct_deposit_active: 1, lead_source: "internal_mortgage" },
 ];
 
 // ── Insert clients ─────────────────────────────────────────────────────
@@ -1523,6 +1535,100 @@ function seedC040() {
   for (const d of weeklyDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(-180, -100), description: "WHOLE FOODS MARKET", category: "groceries", merchant_name: "WHOLE FOODS MARKET", is_recurring: 0, type: "debit" }); }
 }
 
+// ── c041 - Gregory Harrington (Wealth Mgmt — HNW exec, large competitor assets) ──
+function seedC041() {
+  const cid = "c041"; const cnum = "041"; let txCount = 0;
+  for (const d of biweeklyDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: 16154, description: "DIRECT DEP - CIBC WORLD MARKETS", category: "salary_deposit", merchant_name: "CIBC WORLD MARKETS", is_recurring: 1, type: "direct-deposit" }); }
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -5000, description: "RBC DOMINION SECURITIES RRSP", category: "investment_competitor", merchant_name: "RBC DOMINION SECURITIES", is_recurring: 1, type: "pad" }); }
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -3000, description: "TD WATERHOUSE TFSA", category: "investment_competitor", merchant_name: "TD WATERHOUSE", is_recurring: 1, type: "pad" }); }
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -800, description: "MANULIFE LIFE INSURANCE", category: "insurance_premium", merchant_name: "MANULIFE", is_recurring: 1, type: "pad" }); }
+  txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: "2025-12-10", amount: 120000, description: "WIRE TRF YEAR-END BONUS", category: "large_transfer", merchant_name: "CIBC WORLD MARKETS", is_recurring: 0, type: "wire" });
+  for (const d of weeklyDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(-200, -120), description: "PUSATERI'S FINE FOODS", category: "groceries", merchant_name: "PUSATERI'S FINE FOODS", is_recurring: 0, type: "debit" }); }
+}
+
+// ── c042 - Linda Tran (Wealth Mgmt — restaurant chain owner, moderate signals) ──
+function seedC042() {
+  const cid = "c042"; const cnum = "042"; let txCount = 0;
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(14000, 22000), description: "INTERAC E-TRF TRAN RESTAURANT GROUP", category: "salary_deposit", merchant_name: "TRAN RESTAURANT GROUP", is_recurring: 0, type: "e-transfer" }); }
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -2000, description: "SCOTIABANK iTRADE RRSP", category: "investment_competitor", merchant_name: "SCOTIABANK iTRADE", is_recurring: 1, type: "pad" }); }
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -1200, description: "BMO INVESTORLINE TFSA", category: "investment_competitor", merchant_name: "BMO INVESTORLINE", is_recurring: 1, type: "pad" }); }
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -350, description: "SUN LIFE INSURANCE", category: "insurance_premium", merchant_name: "SUN LIFE", is_recurring: 1, type: "pad" }); }
+  for (const d of weeklyDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(-150, -80), description: "T&T SUPERMARKET", category: "groceries", merchant_name: "T&T SUPERMARKET", is_recurring: 0, type: "debit" }); }
+}
+
+// ── c043 - Robert Fraser (Wealth Mgmt — geologist, early-stage signals) ──
+function seedC043() {
+  const cid = "c043"; const cnum = "043"; let txCount = 0;
+  for (const d of biweeklyDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: 4538, description: "DIRECT DEP - SUNCOR ENERGY", category: "salary_deposit", merchant_name: "SUNCOR ENERGY", is_recurring: 1, type: "direct-deposit" }); }
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -800, description: "CIBC INVESTORS EDGE RRSP", category: "rrsp_contribution", merchant_name: "CIBC INVESTORS EDGE", is_recurring: 1, type: "pad" }); }
+  for (const d of weeklyDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(-100, -55), description: "SAFEWAY #233", category: "groceries", merchant_name: "SAFEWAY #233", is_recurring: 0, type: "debit" }); }
+}
+
+// ── c044 - Zara Hossain (Wealth Mgmt — junior dev, minimal signals) ──
+function seedC044() {
+  const cid = "c044"; const cnum = "044"; let txCount = 0;
+  for (const d of biweeklyDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: 2615, description: "DIRECT DEP - SHOPIFY INC", category: "salary_deposit", merchant_name: "SHOPIFY INC", is_recurring: 1, type: "direct-deposit" }); }
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -250, description: "WEALTHSIMPLE TFSA", category: "tfsa_contribution", merchant_name: "WEALTHSIMPLE", is_recurring: 1, type: "pad" }); }
+  for (const d of weeklyDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(-60, -30), description: "NO FRILLS #118", category: "groceries", merchant_name: "NO FRILLS #118", is_recurring: 0, type: "debit" }); }
+}
+
+// ── c045 - Margaret Bellefleur (Wealth Mgmt — retired exec, large competitor portfolio) ──
+function seedC045() {
+  const cid = "c045"; const cnum = "045"; let txCount = 0;
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: 4800, description: "GOVERNMENT OF CANADA PENSION", category: "salary_deposit", merchant_name: "GOVERNMENT OF CANADA", is_recurring: 1, type: "direct-deposit" }); }
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -2500, description: "TD WEALTH MANAGEMENT RRIF", category: "investment_competitor", merchant_name: "TD WEALTH MANAGEMENT", is_recurring: 1, type: "pad" }); }
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -1000, description: "CIBC WOOD GUNDY TFSA", category: "investment_competitor", merchant_name: "CIBC WOOD GUNDY", is_recurring: 1, type: "pad" }); }
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -400, description: "GREAT-WEST LIFE ANNUITY", category: "insurance_premium", merchant_name: "GREAT-WEST LIFE", is_recurring: 1, type: "pad" }); }
+  for (const d of weeklyDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(-130, -70), description: "FARM BOY #205", category: "groceries", merchant_name: "FARM BOY #205", is_recurring: 0, type: "debit" }); }
+}
+
+// ── c046 - Jason Park (Pine/Mortgage — first-time buyer, strong income) ──
+function seedC046() {
+  const cid = "c046"; const cnum = "046"; let txCount = 0;
+  for (const d of biweeklyDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: 5192, description: "DIRECT DEP - STRIPE INC", category: "salary_deposit", merchant_name: "STRIPE INC", is_recurring: 1, type: "direct-deposit" }); }
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -2000, description: "WEALTHSIMPLE RRSP", category: "rrsp_contribution", merchant_name: "WEALTHSIMPLE", is_recurring: 1, type: "pad" }); }
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -1500, description: "WEALTHSIMPLE FHSA", category: "tfsa_contribution", merchant_name: "WEALTHSIMPLE", is_recurring: 1, type: "pad" }); }
+  for (const d of randomDates(3)) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(-800, -400), description: "REALTOR.CA PREMIUM", category: "subscription", merchant_name: "REALTOR.CA", is_recurring: 0, type: "debit" }); }
+  for (const d of weeklyDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(-90, -50), description: "METRO #312", category: "groceries", merchant_name: "METRO #312", is_recurring: 0, type: "debit" }); }
+}
+
+// ── c047 - Natasha Volkov (Pine/Mortgage — family upgrading, current mortgage ending) ──
+function seedC047() {
+  const cid = "c047"; const cnum = "047"; let txCount = 0;
+  for (const d of biweeklyDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: 4923, description: "DIRECT DEP - SHOPPERS DRUG MART", category: "salary_deposit", merchant_name: "SHOPPERS DRUG MART", is_recurring: 1, type: "direct-deposit" }); }
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -2100, description: "SCOTIABANK MORTGAGE", category: "mortgage_payment", merchant_name: "SCOTIABANK", is_recurring: 1, type: "pad" }); }
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -800, description: "RBC DIRECT INVESTING RESP", category: "investment_competitor", merchant_name: "RBC DIRECT INVESTING", is_recurring: 1, type: "pad" }); }
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -300, description: "DESJARDINS INSURANCE", category: "insurance_premium", merchant_name: "DESJARDINS INSURANCE", is_recurring: 1, type: "pad" }); }
+  for (const d of weeklyDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(-120, -70), description: "COSTCO WHOLESALE", category: "groceries", merchant_name: "COSTCO WHOLESALE", is_recurring: 0, type: "debit" }); }
+}
+
+// ── c048 - Andre Lemoine (Pine/Mortgage — condo investor, moderate signals) ──
+function seedC048() {
+  const cid = "c048"; const cnum = "048"; let txCount = 0;
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(8000, 15000), description: "INTERAC E-TRF RENTAL INCOME", category: "salary_deposit", merchant_name: "LEMOINE PROPERTIES", is_recurring: 0, type: "e-transfer" }); }
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -3200, description: "BMO MORTGAGE UNIT 1", category: "mortgage_payment", merchant_name: "BMO", is_recurring: 1, type: "pad" }); }
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -2100, description: "NATIONAL BANK MORTGAGE UNIT 2", category: "mortgage_payment", merchant_name: "NATIONAL BANK", is_recurring: 1, type: "pad" }); }
+  for (const d of weeklyDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(-110, -60), description: "IGA #501", category: "groceries", merchant_name: "IGA #501", is_recurring: 0, type: "debit" }); }
+}
+
+// ── c049 - Deepa Krishnamurthy (Pine/Mortgage — junior accountant, limited signals) ──
+function seedC049() {
+  const cid = "c049"; const cnum = "049"; let txCount = 0;
+  for (const d of biweeklyDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: 2115, description: "DIRECT DEP - BDO CANADA", category: "salary_deposit", merchant_name: "BDO CANADA", is_recurring: 1, type: "direct-deposit" }); }
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -200, description: "WEALTHSIMPLE TFSA", category: "tfsa_contribution", merchant_name: "WEALTHSIMPLE", is_recurring: 1, type: "pad" }); }
+  for (const d of weeklyDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(-55, -30), description: "FOOD BASICS #88", category: "groceries", merchant_name: "FOOD BASICS #88", is_recurring: 0, type: "debit" }); }
+}
+
+// ── c050 - Scott Henderson (Pine/Mortgage — refinancer with equity, competitor mortgage) ──
+function seedC050() {
+  const cid = "c050"; const cnum = "050"; let txCount = 0;
+  for (const d of biweeklyDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: 5577, description: "DIRECT DEP - LEDCOR GROUP", category: "salary_deposit", merchant_name: "LEDCOR GROUP", is_recurring: 1, type: "direct-deposit" }); }
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -2800, description: "RBC MORTGAGE", category: "mortgage_payment", merchant_name: "RBC", is_recurring: 1, type: "pad" }); }
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -1200, description: "RBC DIRECT INVESTING RRSP", category: "investment_competitor", merchant_name: "RBC DIRECT INVESTING", is_recurring: 1, type: "pad" }); }
+  for (const d of monthDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: -250, description: "MANULIFE INSURANCE", category: "insurance_premium", merchant_name: "MANULIFE", is_recurring: 1, type: "pad" }); }
+  for (const d of weeklyDates()) { txCount++; insertTx({ id: txId(cnum, txCount), client_id: cid, date: d, amount: randomBetween(-120, -65), description: "THRIFTY FOODS #14", category: "groceries", merchant_name: "THRIFTY FOODS #14", is_recurring: 0, type: "debit" }); }
+}
+
 // ── Run all transaction seeds inside a transaction ─────────────────────
 
 const seedAllTransactions = db.transaction(() => {
@@ -1566,6 +1672,16 @@ const seedAllTransactions = db.transaction(() => {
   seedC038();
   seedC039();
   seedC040();
+  seedC041();
+  seedC042();
+  seedC043();
+  seedC044();
+  seedC045();
+  seedC046();
+  seedC047();
+  seedC048();
+  seedC049();
+  seedC050();
 });
 seedAllTransactions();
 
@@ -1729,6 +1845,66 @@ const behavioralData = [
     webinar_attendance: 1,
     referred_by_existing_client: 1,
     recorded_at: "2026-02-21T16:15:00Z",
+  },
+  // c041 – Gregory Harrington (Wealth Mgmt — HNW exec, heavy digital + branch engagement)
+  {
+    client_id: "c041",
+    product_page_visits: 8,
+    content_downloads: 4,
+    email_opens: 14,
+    email_clicks: 6,
+    form_submissions: 2,
+    branch_visits: 1,
+    chat_engagements: 3,
+    return_visits_last_7d: 4,
+    webinar_attendance: 2,
+    referred_by_existing_client: 0,
+    recorded_at: "2026-02-24T10:00:00Z",
+  },
+  // c042 – Linda Tran (Wealth Mgmt — restaurant owner, moderate engagement)
+  {
+    client_id: "c042",
+    product_page_visits: 4,
+    content_downloads: 1,
+    email_opens: 8,
+    email_clicks: 3,
+    form_submissions: 1,
+    branch_visits: 0,
+    chat_engagements: 1,
+    return_visits_last_7d: 2,
+    webinar_attendance: 1,
+    referred_by_existing_client: 0,
+    recorded_at: "2026-02-23T15:30:00Z",
+  },
+  // c046 – Jason Park (Pine/Mortgage — first-time buyer, actively researching)
+  {
+    client_id: "c046",
+    product_page_visits: 7,
+    content_downloads: 3,
+    email_opens: 12,
+    email_clicks: 5,
+    form_submissions: 2,
+    branch_visits: 1,
+    chat_engagements: 2,
+    return_visits_last_7d: 3,
+    webinar_attendance: 1,
+    referred_by_existing_client: 0,
+    recorded_at: "2026-02-24T09:15:00Z",
+  },
+  // c050 – Scott Henderson (Pine/Mortgage — refinancer, moderate engagement)
+  {
+    client_id: "c050",
+    product_page_visits: 3,
+    content_downloads: 1,
+    email_opens: 7,
+    email_clicks: 2,
+    form_submissions: 1,
+    branch_visits: 0,
+    chat_engagements: 1,
+    return_visits_last_7d: 2,
+    webinar_attendance: 0,
+    referred_by_existing_client: 1,
+    recorded_at: "2026-02-22T11:45:00Z",
   },
   // c040 – Preethi Ranganathan (Referral Lead — dermatologist, highest value external)
   {

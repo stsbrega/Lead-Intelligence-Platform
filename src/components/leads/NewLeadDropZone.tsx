@@ -162,11 +162,11 @@ export default function NewLeadDropZone() {
         <>
           <UploadIcon />
           <p className="text-lg font-semibold text-dune mt-4">
-            Drop your meeting notes here
+            Drop your documents here
           </p>
           <p className="text-sm text-gray-50 mt-2 max-w-md mx-auto">
-            Upload notes from a sales call or client meeting. The AI will extract
-            client information, identify opportunities, and create a scored lead.
+            Upload meeting notes, account statements, or other client documents.
+            The AI will extract client information, identify opportunities, and create a scored lead.
           </p>
           <p className="text-xs text-gray-30 mt-3">
             or click to browse &middot; .txt, .docx, .xlsx, .pdf

@@ -27,7 +27,7 @@ For missing client fields, use sensible defaults:
 - If income not mentioned, estimate from occupation/context or default to 0
 - If city not mentioned, default to "Unknown"`;
 
-const TOOL_SCHEMA = {
+export const NEW_LEAD_TOOL_SCHEMA = {
   name: "submit_lead_from_notes",
   description: "Submit the extracted client profile and lead analysis from meeting notes",
   input_schema: {
@@ -116,14 +116,14 @@ Extract the client profile and analyze this as a potential lead opportunity. The
       anthropicParams: {
         max_tokens: 2500,
         system: SYSTEM_PROMPT,
-        tools: [TOOL_SCHEMA],
+        tools: [NEW_LEAD_TOOL_SCHEMA],
         tool_choice: { type: "tool", name: "submit_lead_from_notes" },
         messages: [{ role: "user", content: userPrompt }],
       },
       groqParams: {
         system: SYSTEM_PROMPT,
         userMessage: userPrompt,
-        tool: TOOL_SCHEMA,
+        tool: NEW_LEAD_TOOL_SCHEMA,
         maxTokens: 2500,
       },
       zodSchema: LeadFromNotesSchema,

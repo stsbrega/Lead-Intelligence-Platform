@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/data/db";
-import { analyzeNotes } from "@/lib/ai/notes-analyzer";
+import { analyzeNotesWithDetection } from "@/lib/ai/notes-analyzer";
 import { extractText, isSupportedFile } from "@/lib/file-parser";
 
 export async function POST(request: NextRequest) {
@@ -74,39 +74,99 @@ export async function POST(request: NextRequest) {
     | undefined;
 
   try {
-    const result = await analyzeNotes(
-      `${clientRow.first_name} ${clientRow.last_name}`,
+    const clientName = `${clientRow.first_name} ${clientRow.last_name}`;
+    const detection = await analyzeNotesWithDetection(
+      clientName,
       analysisRow?.summary ?? null,
       analysisRow?.score ?? null,
       notesText
     );
 
-    const id = `note_${clientId}_${Date.now()}`;
-    const analyzedAt = new Date().toISOString();
+    if (detection.type === "same_client") {
+      // ── Same client: supplementary notes analysis ──
+      const result = detection.data;
+      const id = `note_${clientId}_${Date.now()}`;
+      const analyzedAt = new Date().toISOString();
 
-    db.prepare(`
-      INSERT INTO advisor_note_analyses (id, client_id, notes_text, insights, new_signals, updated_recommendations, summary_addendum, score_adjustment, analyzed_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      id,
-      clientId,
-      notesText,
-      JSON.stringify(result.insights),
-      JSON.stringify(result.newSignals),
-      JSON.stringify(result.updatedRecommendations),
-      result.summaryAddendum,
-      result.scoreAdjustment,
-      analyzedAt
-    );
-
-    return NextResponse.json({
-      noteAnalysis: {
+      db.prepare(`
+        INSERT INTO advisor_note_analyses (id, client_id, notes_text, insights, new_signals, updated_recommendations, summary_addendum, score_adjustment, analyzed_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
         id,
         clientId,
         notesText,
-        ...result,
-        analyzedAt,
-      },
+        JSON.stringify(result.insights),
+        JSON.stringify(result.newSignals),
+        JSON.stringify(result.updatedRecommendations),
+        result.summaryAddendum,
+        result.scoreAdjustment,
+        analyzedAt
+      );
+
+      return NextResponse.json({
+        noteAnalysis: {
+          id,
+          clientId,
+          notesText,
+          ...result,
+          analyzedAt,
+        },
+      });
+    }
+
+    // ── Different person: create a new lead ──
+    const { clientProfile, analysis } = detection.data;
+    const { modelUsed } = detection;
+    const newClientId = `c_notes_${Date.now()}`;
+    const now = new Date().toISOString();
+    const analysisId = `analysis_${newClientId}`;
+
+    db.prepare(`
+      INSERT INTO clients (id, first_name, last_name, email, age, city, province, occupation, annual_income, account_open_date, total_balance, direct_deposit_active, lead_source)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      newClientId,
+      clientProfile.firstName,
+      clientProfile.lastName,
+      "",
+      clientProfile.estimatedAge,
+      clientProfile.city,
+      clientProfile.province,
+      clientProfile.occupation,
+      clientProfile.estimatedAnnualIncome,
+      now.split("T")[0],
+      0,
+      0,
+      "advisor_created"
+    );
+
+    db.prepare(`
+      INSERT INTO analyses (id, client_id, score, confidence, signals, summary, detailed_reasoning, recommended_actions, human_decision_required, analyzed_at, model_used)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      analysisId,
+      newClientId,
+      analysis.score,
+      analysis.confidence,
+      JSON.stringify(analysis.signals),
+      analysis.summary,
+      analysis.detailedReasoning,
+      JSON.stringify(analysis.recommendedActions),
+      analysis.humanDecisionRequired,
+      now,
+      modelUsed
+    );
+
+    db.prepare(`
+      INSERT INTO lead_status (client_id, status, advisor_notes, last_updated)
+      VALUES (?, ?, ?, ?)
+    `).run(newClientId, "new", "", now);
+
+    return NextResponse.json({
+      redirect: true,
+      clientId: newClientId,
+      clientName: `${clientProfile.firstName} ${clientProfile.lastName}`,
+      score: analysis.score,
     });
   } catch (error) {
     console.error("Notes analysis failed:", error);
@@ -124,7 +184,7 @@ export async function POST(request: NextRequest) {
 
     const userMessage = isAuthError
       ? `API authentication failed — check that ANTHROPIC_API_KEY is valid. (${detail})`
-      : `Notes analysis failed: ${detail}`;
+      : `Analysis failed: ${detail}`;
 
     return NextResponse.json({ error: userMessage }, { status: 500 });
   }

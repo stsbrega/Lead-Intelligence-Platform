@@ -1,20 +1,30 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import type { NoteAnalysis } from "@/types";
+
+interface RedirectData {
+  clientId: string;
+  clientName: string;
+  score: number;
+}
 
 interface Props {
   clientId: string;
+  clientName: string;
   existingAnalyses: NoteAnalysis[];
 }
 
 type Status = "idle" | "dragging" | "reading" | "analyzing" | "success" | "error";
 
-export default function NotesDropZone({ clientId, existingAnalyses }: Props) {
+export default function NotesDropZone({ clientId, clientName, existingAnalyses }: Props) {
+  const router = useRouter();
   const [status, setStatus] = useState<Status>("idle");
   const [analyses, setAnalyses] = useState<NoteAnalysis[]>(existingAnalyses);
   const [errorMessage, setErrorMessage] = useState("");
   const [fileName, setFileName] = useState("");
+  const [redirectData, setRedirectData] = useState<RedirectData | null>(null);
   const dragCounter = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -79,10 +89,19 @@ export default function NotesDropZone({ clientId, existingAnalyses }: Props) {
         throw new Error(data.error || "Analysis failed");
       }
 
-      const { noteAnalysis } = await res.json();
-      setAnalyses(prev => [noteAnalysis, ...prev]);
-      setStatus("success");
-      setTimeout(() => setStatus("idle"), 4000);
+      const data = await res.json();
+
+      if (data.redirect) {
+        // AI detected a different person — new lead was created
+        setRedirectData({ clientId: data.clientId, clientName: data.clientName, score: data.score });
+        setStatus("success");
+        setTimeout(() => router.push(`/leads/${data.clientId}`), 2500);
+      } else {
+        // Same client — supplementary analysis
+        setAnalyses(prev => [data.noteAnalysis, ...prev]);
+        setStatus("success");
+        setTimeout(() => setStatus("idle"), 4000);
+      }
     } catch (err) {
       setStatus("error");
       setErrorMessage(err instanceof Error ? err.message : "Analysis failed");
@@ -150,7 +169,7 @@ export default function NotesDropZone({ clientId, existingAnalyses }: Props) {
         {status === "idle" && (
           <>
             <UploadIcon />
-            <p className="text-sm font-medium text-dune mt-2">Drop meeting notes here</p>
+            <p className="text-sm font-medium text-dune mt-2">Drop notes or statements here</p>
             <p className="text-xs text-gray-50 mt-1">or click to browse &middot; .txt, .docx, .xlsx, .pdf</p>
           </>
         )}
@@ -168,14 +187,26 @@ export default function NotesDropZone({ clientId, existingAnalyses }: Props) {
             <p className="text-sm font-medium text-dune mt-2">
               {status === "reading" ? "Reading file..." : `Analyzing ${fileName}...`}
             </p>
-            <p className="text-xs text-gray-50 mt-1">Claude is reviewing the notes</p>
+            <p className="text-xs text-gray-50 mt-1">Claude is reviewing the document</p>
           </>
         )}
 
-        {status === "success" && (
+        {status === "success" && !redirectData && (
           <>
             <CheckIcon />
             <p className="text-sm font-semibold text-ws-green-dark mt-2">Analysis complete</p>
+          </>
+        )}
+
+        {status === "success" && redirectData && (
+          <>
+            <CheckIcon />
+            <p className="text-sm font-semibold text-ws-green-dark mt-2">
+              New lead created: {redirectData.clientName}
+            </p>
+            <p className="text-xs text-gray-50 mt-1">
+              Score: {redirectData.score}/100 &middot; Redirecting...
+            </p>
           </>
         )}
 

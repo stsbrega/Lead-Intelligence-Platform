@@ -374,7 +374,7 @@ export default async function LeadDetailPage({ params }: Props) {
           )}
 
           {/* Meeting Notes Upload */}
-          <NotesDropZone clientId={id} existingAnalyses={noteAnalyses} />
+          <NotesDropZone clientId={id} clientName={`${client.firstName} ${client.lastName}`} existingAnalyses={noteAnalyses} />
 
           {/* Recommended Actions */}
           {analysis && (

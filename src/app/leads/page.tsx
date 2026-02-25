@@ -35,7 +35,7 @@ interface InternalLeadName {
 const SOURCE_LABELS: Record<string, string> = {
   internal_banking: "Banking",
   internal_wealth: "Wealth Management",
-  internal_mortgage: "Mortgage",
+  internal_mortgage: "Pine",
   external_realty: "Realty Partners",
   external_marketing: "Marketing Campaigns",
   external_referral: "Client Referrals",

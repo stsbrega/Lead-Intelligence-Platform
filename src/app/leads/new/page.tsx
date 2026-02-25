@@ -14,8 +14,8 @@ export default function NewLeadPage() {
           Add New Lead
         </h1>
         <p className="text-gray-50 mt-1">
-          Create a new lead from your meeting notes. The AI will extract client
-          details and generate a scored analysis.
+          Create a new lead from meeting notes, account statements, or other
+          client documents. The AI will extract details and generate a scored analysis.
         </p>
       </div>
 
@@ -32,7 +32,7 @@ export default function NewLeadPage() {
                 1
               </div>
               <p className="text-xs text-gray-50 mt-2">
-                AI extracts client name, occupation, and other details from your notes
+                AI extracts client name, occupation, and other details from your documents
               </p>
             </div>
             <div className="text-center">

@@ -88,7 +88,7 @@ export default function DashboardPage() {
   const SOURCE_LABELS: Record<string, string> = {
     internal_banking: "Banking",
     internal_wealth: "Wealth Mgmt",
-    internal_mortgage: "Mortgage",
+    internal_mortgage: "Pine",
     external_realty: "Realty Partners",
     external_marketing: "Marketing Co.",
     external_referral: "Referrals",
