@@ -113,6 +113,22 @@ export interface LeadSummary {
 
 export type LeadStatus = "new" | "reviewed" | "contacted" | "converted" | "dismissed";
 
+// === Lead Qualification Scoring (re-exported from scoring module) ===
+export type {
+  BankingVertical,
+  ScoringDimension,
+  QualificationTier,
+  ComplianceGateStatus,
+  DimensionScore,
+  CriterionResult,
+  NegativeAdjustment,
+  LeadQualificationScore,
+  LeadEnrichmentData,
+  DecayableSignal,
+  VerticalWeights,
+  TierThreshold,
+} from "@/lib/scoring/types";
+
 // === Advisor Note Analysis ===
 export interface NoteAnalysis {
   id: string;
