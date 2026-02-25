@@ -3,6 +3,16 @@ import type { NoteAnalysis } from "@/types";
 import { NotesAnalysisSchema, LeadFromNotesSchema, type NotesAnalysisResult, type LeadFromNotesResult } from "./schemas";
 import { NEW_LEAD_TOOL_SCHEMA } from "./lead-from-notes";
 
+/** Cap document text to avoid token-budget issues with large PDFs. */
+const MAX_INPUT_CHARS = 20_000;
+function truncateInput(text: string): string {
+  if (text.length <= MAX_INPUT_CHARS) return text;
+  return (
+    text.slice(0, MAX_INPUT_CHARS) +
+    "\n\n[... document truncated — remaining content omitted for brevity ...]"
+  );
+}
+
 const NOTES_SYSTEM_PROMPT = `You are an AI assistant for Wealthsimple's financial advisory team. You are analyzing meeting notes written by an advisor after a client conversation.
 
 YOUR TASK:
@@ -66,19 +76,20 @@ export async function analyzeNotes(
   existingScore: number | null,
   notesText: string
 ): Promise<Omit<NoteAnalysis, "id" | "clientId" | "notesText" | "analyzedAt">> {
+  const trimmed = truncateInput(notesText);
   const userPrompt = `CLIENT: ${clientName}
 ${existingSummary ? `\nEXISTING AI ANALYSIS SUMMARY:\n${existingSummary}` : "No existing analysis available."}
 ${existingScore !== null ? `\nCURRENT SCORE: ${existingScore}/100` : ""}
 
 ADVISOR MEETING NOTES:
-${notesText}
+${trimmed}
 
 Analyze these meeting notes and extract insights that supplement the transaction-based analysis.`;
 
   const { data: result } =
     await createMessageWithFallbackAndValidation<NotesAnalysisResult>({
       anthropicParams: {
-        max_tokens: 1500,
+        max_tokens: 2500,
         system: NOTES_SYSTEM_PROMPT,
         tools: [NOTES_TOOL_SCHEMA],
         tool_choice: { type: "tool", name: "submit_notes_analysis" },
@@ -88,7 +99,7 @@ Analyze these meeting notes and extract insights that supplement the transaction
         system: NOTES_SYSTEM_PROMPT,
         userMessage: userPrompt,
         tool: NOTES_TOOL_SCHEMA,
-        maxTokens: 1500,
+        maxTokens: 2500,
       },
       zodSchema: NotesAnalysisSchema,
       schemaDescription:
@@ -149,18 +160,19 @@ export async function analyzeNotesWithDetection(
   existingScore: number | null,
   notesText: string
 ): Promise<DetectionResult> {
+  const trimmed = truncateInput(notesText);
   const userPrompt = `CURRENT CLIENT: ${clientName}
 ${existingSummary ? `\nEXISTING AI ANALYSIS SUMMARY:\n${existingSummary}` : "\nNo existing analysis available."}
 ${existingScore !== null ? `CURRENT SCORE: ${existingScore}/100` : ""}
 
 UPLOADED DOCUMENT:
-${notesText}
+${trimmed}
 
 Determine if this document is about the current client (${clientName}) or a different person, then analyze accordingly using the appropriate tool.`;
 
   try {
     const response = await createMessageWithFallback({
-      max_tokens: 2500,
+      max_tokens: 4096,
       system: DETECTION_SYSTEM_PROMPT,
       tools: [NOTES_TOOL_SCHEMA, NEW_LEAD_TOOL_SCHEMA],
       tool_choice: { type: "any" },
@@ -194,7 +206,7 @@ Determine if this document is about the current client (${clientName}) or a diff
     const { data: result, modelUsed } =
       await createMessageWithFallbackAndValidation<NotesAnalysisResult>({
         anthropicParams: {
-          max_tokens: 1500,
+          max_tokens: 2500,
           system: NOTES_SYSTEM_PROMPT,
           tools: [NOTES_TOOL_SCHEMA],
           tool_choice: { type: "tool", name: "submit_notes_analysis" },
@@ -204,7 +216,7 @@ Determine if this document is about the current client (${clientName}) or a diff
           system: NOTES_SYSTEM_PROMPT,
           userMessage: userPrompt,
           tool: NOTES_TOOL_SCHEMA,
-          maxTokens: 1500,
+          maxTokens: 2500,
         },
         zodSchema: NotesAnalysisSchema,
         schemaDescription:

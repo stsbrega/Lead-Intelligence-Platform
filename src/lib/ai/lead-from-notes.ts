@@ -107,16 +107,29 @@ export const NEW_LEAD_TOOL_SCHEMA = {
   },
 };
 
+/** Cap document text to avoid token-budget issues with large PDFs. */
+const MAX_INPUT_CHARS = 20_000;
+
+function truncateInput(text: string): string {
+  if (text.length <= MAX_INPUT_CHARS) return text;
+  return (
+    text.slice(0, MAX_INPUT_CHARS) +
+    "\n\n[... document truncated — remaining content omitted for brevity ...]"
+  );
+}
+
 export async function createLeadFromNotes(notesText: string): Promise<LeadFromNotesResult & { modelUsed: string }> {
+  const trimmed = truncateInput(notesText);
+
   const userPrompt = `ADVISOR MEETING NOTES (raw):
-${notesText}
+${trimmed}
 
 Extract the client profile and analyze this as a potential lead opportunity. The notes may be rough, contain typos, or have incomplete information — do your best to interpret them.`;
 
   const { data: result, modelUsed } =
     await createMessageWithFallbackAndValidation<LeadFromNotesResult>({
       anthropicParams: {
-        max_tokens: 2500,
+        max_tokens: 4096,
         system: SYSTEM_PROMPT,
         tools: [NEW_LEAD_TOOL_SCHEMA],
         tool_choice: { type: "tool", name: "submit_lead_from_notes" },
@@ -126,7 +139,7 @@ Extract the client profile and analyze this as a potential lead opportunity. The
         system: SYSTEM_PROMPT,
         userMessage: userPrompt,
         tool: NEW_LEAD_TOOL_SCHEMA,
-        maxTokens: 2500,
+        maxTokens: 4096,
       },
       zodSchema: LeadFromNotesSchema,
       schemaDescription:

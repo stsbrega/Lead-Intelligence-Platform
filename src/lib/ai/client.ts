@@ -38,15 +38,21 @@ function isTransientError(err: unknown): boolean {
 }
 
 /**
- * Detect 400 errors caused by the model returning wrong types in tool calls
- * (e.g., string "85" instead of number 85). These are worth retrying on a
- * different model because each model may serialize differently.
+ * Detect 400 errors caused by the model failing to produce a valid tool call.
+ * This covers two failure modes:
+ *   1. Type mismatches (string "85" where number 85 was expected)
+ *   2. Incomplete generation (model ran out of tokens before completing JSON)
+ * Both are worth retrying on a different model.
  */
-function isToolValidationError(err: unknown): boolean {
+function isToolCallError(err: unknown): boolean {
   if (err && typeof err === "object" && "status" in err) {
     if ((err as { status: number }).status !== 400) return false;
     const msg = String((err as { message?: string }).message ?? "");
-    return msg.includes("tool call validation") || msg.includes("did not match schema");
+    return (
+      msg.includes("tool call validation") ||
+      msg.includes("did not match schema") ||
+      msg.includes("Failed to call a function")
+    );
   }
   return false;
 }
@@ -92,11 +98,11 @@ export async function createMessageWithFallback(
           break;
         }
 
-        // Tool validation 400s (model returned strings for numbers, etc.)
+        // Tool call 400s (wrong types, incomplete generation, etc.)
         // are worth retrying on a different model.
-        if (isToolValidationError(err)) {
+        if (isToolCallError(err)) {
           console.warn(
-            `[AI] ${model} returned invalid tool call types, trying next model...`
+            `[AI] ${model} tool call failed (${(err as { message?: string }).message?.slice(0, 80)}), trying next model...`
           );
           break;
         }
