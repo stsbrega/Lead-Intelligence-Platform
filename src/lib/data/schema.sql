@@ -62,7 +62,24 @@ CREATE TABLE IF NOT EXISTS advisor_note_analyses (
   FOREIGN KEY (client_id) REFERENCES clients(id)
 );
 
+CREATE TABLE IF NOT EXISTS behavioral_engagement (
+  client_id TEXT PRIMARY KEY,
+  product_page_visits INTEGER DEFAULT 0,
+  content_downloads INTEGER DEFAULT 0,
+  email_opens INTEGER DEFAULT 0,
+  email_clicks INTEGER DEFAULT 0,
+  form_submissions INTEGER DEFAULT 0,
+  branch_visits INTEGER DEFAULT 0,
+  chat_engagements INTEGER DEFAULT 0,
+  return_visits_last_7d INTEGER DEFAULT 0,
+  webinar_attendance INTEGER DEFAULT 0,
+  referred_by_existing_client INTEGER DEFAULT 0,
+  recorded_at TEXT,
+  FOREIGN KEY (client_id) REFERENCES clients(id)
+);
+
 CREATE INDEX IF NOT EXISTS idx_transactions_client ON transactions(client_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category);
 CREATE INDEX IF NOT EXISTS idx_analyses_score ON analyses(score DESC);
 CREATE INDEX IF NOT EXISTS idx_note_analyses_client ON advisor_note_analyses(client_id);
+CREATE INDEX IF NOT EXISTS idx_behavioral_client ON behavioral_engagement(client_id);

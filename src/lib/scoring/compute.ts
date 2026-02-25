@@ -76,6 +76,21 @@ function getExistingSignals(clientId: string): LeadSignal[] {
   }
 }
 
+/** Behavioral engagement row from database */
+interface BehavioralRow {
+  client_id: string;
+  product_page_visits: number;
+  content_downloads: number;
+  email_opens: number;
+  email_clicks: number;
+  form_submissions: number;
+  branch_visits: number;
+  chat_engagements: number;
+  return_visits_last_7d: number;
+  webinar_attendance: number;
+  referred_by_existing_client: number;
+}
+
 /** Build enrichment data from what we can infer */
 function buildEnrichment(client: Client, transactions: Transaction[]): LeadEnrichmentData {
   const enrichment: LeadEnrichmentData = {};
@@ -117,6 +132,42 @@ function buildEnrichment(client: Client, transactions: Transaction[]): LeadEnric
   enrichment.sanctionsScreeningClear = true;
   enrichment.adverseMediaClear = true;
   enrichment.jurisdictionRiskLevel = "low";
+
+  // Load behavioral engagement data from CRM / web analytics
+  const behavioral = db.prepare(
+    "SELECT * FROM behavioral_engagement WHERE client_id = ?"
+  ).get(client.id) as BehavioralRow | undefined;
+
+  if (behavioral) {
+    enrichment.productPageVisits = behavioral.product_page_visits;
+    enrichment.contentDownloads = behavioral.content_downloads;
+    enrichment.emailOpens = behavioral.email_opens;
+    enrichment.emailClicks = behavioral.email_clicks;
+    enrichment.formSubmissions = behavioral.form_submissions;
+    enrichment.branchVisits = behavioral.branch_visits;
+    enrichment.chatEngagements = behavioral.chat_engagements;
+    enrichment.returnVisitsLast7Days = behavioral.return_visits_last_7d;
+    enrichment.webinarAttendance = behavioral.webinar_attendance;
+    enrichment.referredByExistingClient = Boolean(behavioral.referred_by_existing_client);
+
+    // Derive intent signals from behavioral actions (mirrors real CRM pipelines
+    // where engagement activities naturally trigger downstream qualification steps)
+    if (behavioral.form_submissions > 0) {
+      enrichment.consultationRequested = true;
+    }
+    if (behavioral.form_submissions >= 2 || (behavioral.form_submissions > 0 && behavioral.branch_visits > 0)) {
+      enrichment.applicationStarted = true;
+    }
+    if (behavioral.branch_visits > 0) {
+      enrichment.urgencyExpressed = true;
+      // Branch visits trigger in-person KYC steps
+      enrichment.pepScreeningComplete = true;
+      enrichment.sourceOfFundsDocumented = true;
+    }
+    if (behavioral.webinar_attendance > 0) {
+      enrichment.rateComparisonDetected = true;
+    }
+  }
 
   return enrichment;
 }

@@ -19,6 +19,7 @@ const schema = fs.readFileSync(schemaPath, "utf-8");
 db.exec(schema);
 
 // ── Clear all tables before inserting ──────────────────────────────────
+db.exec("DELETE FROM behavioral_engagement");
 db.exec("DELETE FROM lead_status");
 db.exec("DELETE FROM analyses");
 db.exec("DELETE FROM transactions");
@@ -1354,8 +1355,119 @@ const seedLeadStatus = db.transaction(() => {
 });
 seedLeadStatus();
 
+// ── Behavioral engagement data (mock CRM / web analytics signals) ─────
+// These 5 leads have strong behavioral engagement that boosts them into Tier A.
+
+const insertBehavioral = db.prepare(`
+  INSERT INTO behavioral_engagement (
+    client_id, product_page_visits, content_downloads, email_opens, email_clicks,
+    form_submissions, branch_visits, chat_engagements, return_visits_last_7d,
+    webinar_attendance, referred_by_existing_client, recorded_at
+  ) VALUES (
+    @client_id, @product_page_visits, @content_downloads, @email_opens, @email_clicks,
+    @form_submissions, @branch_visits, @chat_engagements, @return_visits_last_7d,
+    @webinar_attendance, @referred_by_existing_client, @recorded_at
+  )
+`);
+
+const behavioralData = [
+  // c001 – Priya Sharma (Senior SWE, retail_banking, behavioral weight 0.30)
+  // Heavy digital engagement: researching investment products online, clicks through emails,
+  // multiple return visits, active in chat — classic tech-savvy prospect pattern.
+  {
+    client_id: "c001",
+    product_page_visits: 7,
+    content_downloads: 2,
+    email_opens: 15,
+    email_clicks: 5,
+    form_submissions: 1,
+    branch_visits: 0,
+    chat_engagements: 3,
+    return_visits_last_7d: 4,
+    webinar_attendance: 1,
+    referred_by_existing_client: 0,
+    recorded_at: "2026-02-20T14:30:00Z",
+  },
+  // c004 – Aisha Okafor (Petroleum Engineer, retail_banking, behavioral weight 0.30)
+  // Webinar attendee who followed up with product research and a consultation form.
+  // Referred by a colleague who is an existing Wealthsimple client.
+  {
+    client_id: "c004",
+    product_page_visits: 5,
+    content_downloads: 3,
+    email_opens: 10,
+    email_clicks: 4,
+    form_submissions: 1,
+    branch_visits: 0,
+    chat_engagements: 1,
+    return_visits_last_7d: 2,
+    webinar_attendance: 2,
+    referred_by_existing_client: 1,
+    recorded_at: "2026-02-18T09:15:00Z",
+  },
+  // c011 – Naveen Kapoor (CFO, wealth_management, behavioral weight 0.15)
+  // High-touch prospect: branch visit, multiple webinars, downloaded whitepapers,
+  // and actively engaging through chat. Referred by existing HNW client.
+  {
+    client_id: "c011",
+    product_page_visits: 6,
+    content_downloads: 3,
+    email_opens: 12,
+    email_clicks: 4,
+    form_submissions: 2,
+    branch_visits: 1,
+    chat_engagements: 2,
+    return_visits_last_7d: 3,
+    webinar_attendance: 2,
+    referred_by_existing_client: 1,
+    recorded_at: "2026-02-22T11:00:00Z",
+  },
+  // c013 – Amit Sundaram (Cardiologist, wealth_management, behavioral weight 0.15)
+  // Busy professional: attended a wealth planning webinar, visited branch once,
+  // submitted a consultation form. Moderate email engagement.
+  {
+    client_id: "c013",
+    product_page_visits: 4,
+    content_downloads: 2,
+    email_opens: 8,
+    email_clicks: 3,
+    form_submissions: 1,
+    branch_visits: 1,
+    chat_engagements: 1,
+    return_visits_last_7d: 2,
+    webinar_attendance: 1,
+    referred_by_existing_client: 1,
+    recorded_at: "2026-02-19T16:45:00Z",
+  },
+  // c014 – Danielle Fournier (VP Engineering, wealth_management, behavioral weight 0.15)
+  // Digital-first executive who progressed to in-person: heavy content consumption online,
+  // then booked a wealth planning consultation at the branch. Multiple form submissions
+  // (RRSP optimization calculator + portfolio review request). Active email engagement.
+  {
+    client_id: "c014",
+    product_page_visits: 8,
+    content_downloads: 3,
+    email_opens: 14,
+    email_clicks: 6,
+    form_submissions: 2,
+    branch_visits: 1,
+    chat_engagements: 3,
+    return_visits_last_7d: 4,
+    webinar_attendance: 1,
+    referred_by_existing_client: 0,
+    recorded_at: "2026-02-21T10:20:00Z",
+  },
+];
+
+const seedBehavioral = db.transaction(() => {
+  for (const b of behavioralData) {
+    insertBehavioral.run(b);
+  }
+});
+seedBehavioral();
+
 // ── Summary ────────────────────────────────────────────────────────────
 
-console.log(`Seeded ${clients.length} clients and ${totalTransactions} transactions`);
+console.log(`Seeded ${clients.length} clients, ${totalTransactions} transactions, and ${behavioralData.length} behavioral engagement records`);
 
 db.close();
