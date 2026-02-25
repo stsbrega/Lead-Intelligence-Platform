@@ -5,7 +5,7 @@ services:
     plan: free
     region: ohio
     buildCommand: |
-      npm install &&
+      npm ci &&
       npx tsx src/lib/data/seed.ts &&
       npx tsx scripts/generate-analysis.ts --mock &&
       npm run build
