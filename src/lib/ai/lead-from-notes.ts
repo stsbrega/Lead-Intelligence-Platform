@@ -25,7 +25,9 @@ For missing client fields, use sensible defaults:
 - If no province mentioned, default to "ON"
 - If no age mentioned, estimate from context clues or default to 0
 - If income not mentioned, estimate from occupation/context or default to 0
-- If city not mentioned, default to "Unknown"`;
+- If city not mentioned, default to "Unknown"
+
+CRITICAL JSON FORMATTING: All numeric fields (score, estimatedValue, priority, estimatedAge, estimatedAnnualIncome) MUST be actual JSON numbers (e.g., 85 not "85"). All boolean fields (requiresHumanApproval) MUST be actual JSON booleans (true/false, not "true"/"false").`;
 
 export const NEW_LEAD_TOOL_SCHEMA = {
   name: "submit_lead_from_notes",

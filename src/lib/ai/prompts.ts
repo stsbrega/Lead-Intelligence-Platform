@@ -24,7 +24,9 @@ SCORING GUIDE:
 - 40-59: Emerging — early-stage signals, monitoring recommended
 - 0-39: Low priority — minimal actionable signals
 
-Always reference specific transactions and dollar amounts in your reasoning.`;
+Always reference specific transactions and dollar amounts in your reasoning.
+
+CRITICAL JSON FORMATTING: All numeric fields (score, estimatedValue, priority) MUST be actual JSON numbers (e.g., 85 not "85"). All boolean fields (requiresHumanApproval) MUST be actual JSON booleans (true/false, not "true"/"false").`;
 
 export function buildUserPrompt(
   client: Client,

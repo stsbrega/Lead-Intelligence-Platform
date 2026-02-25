@@ -37,6 +37,20 @@ function isTransientError(err: unknown): boolean {
   return false;
 }
 
+/**
+ * Detect 400 errors caused by the model returning wrong types in tool calls
+ * (e.g., string "85" instead of number 85). These are worth retrying on a
+ * different model because each model may serialize differently.
+ */
+function isToolValidationError(err: unknown): boolean {
+  if (err && typeof err === "object" && "status" in err) {
+    if ((err as { status: number }).status !== 400) return false;
+    const msg = String((err as { message?: string }).message ?? "");
+    return msg.includes("tool call validation") || msg.includes("did not match schema");
+  }
+  return false;
+}
+
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -74,6 +88,15 @@ export async function createMessageWithFallback(
         if (isTransientError(err)) {
           console.warn(
             `[AI] ${model} failed after retry, falling back to next model...`
+          );
+          break;
+        }
+
+        // Tool validation 400s (model returned strings for numbers, etc.)
+        // are worth retrying on a different model.
+        if (isToolValidationError(err)) {
+          console.warn(
+            `[AI] ${model} returned invalid tool call types, trying next model...`
           );
           break;
         }

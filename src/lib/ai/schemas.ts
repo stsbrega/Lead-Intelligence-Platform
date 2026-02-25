@@ -8,6 +8,29 @@
 
 import { z } from "zod";
 
+// ── Coercion helpers ────────────────────────────────────────────────────────
+// AI models sometimes return numbers as strings ("85" instead of 85) or
+// booleans as strings ("true" instead of true). These preprocess wrappers
+// fix the most common cases without the pitfalls of z.coerce.
+
+/** Accept a real number OR a numeric string and always produce a number. */
+const CoercedNumber = z.preprocess(
+  (val) => (typeof val === "string" && val.trim() !== "" ? Number(val) : val),
+  z.number()
+);
+
+/** Accept a real boolean OR the strings "true"/"false". */
+const CoercedBoolean = z.preprocess(
+  (val) => {
+    if (typeof val === "string") {
+      if (val.toLowerCase() === "true") return true;
+      if (val.toLowerCase() === "false") return false;
+    }
+    return val;
+  },
+  z.boolean()
+);
+
 // ── Shared sub-schemas ──────────────────────────────────────────────────────
 
 const SeveritySchema = z.enum(["high", "medium", "low"]);
@@ -17,21 +40,21 @@ const SignalSchema = z.object({
   type: z.string(),
   description: z.string(),
   severity: SeveritySchema,
-  estimatedValue: z.number(),
+  estimatedValue: CoercedNumber,
 });
 
 const RecommendedActionSchema = z.object({
-  priority: z.number(),
+  priority: CoercedNumber,
   action: z.string(),
   rationale: z.string(),
   estimatedImpact: z.string(),
-  requiresHumanApproval: z.boolean(),
+  requiresHumanApproval: CoercedBoolean,
 });
 
 // ── 1. submit_lead_analysis (engine.ts) ─────────────────────────────────────
 
 export const LeadAnalysisSchema = z.object({
-  score: z.number(),
+  score: CoercedNumber,
   confidence: ConfidenceSchema,
   signals: z.array(SignalSchema),
   summary: z.string(),
@@ -49,8 +72,8 @@ const ClientProfileSchema = z.object({
   occupation: z.string(),
   city: z.string(),
   province: z.string(),
-  estimatedAnnualIncome: z.number(),
-  estimatedAge: z.number(),
+  estimatedAnnualIncome: CoercedNumber,
+  estimatedAge: CoercedNumber,
 });
 
 export const LeadFromNotesSchema = z.object({
@@ -72,7 +95,7 @@ export const NotesAnalysisSchema = z.object({
   newSignals: z.array(NoteSignalSchema),
   updatedRecommendations: z.array(z.string()),
   summaryAddendum: z.string(),
-  scoreAdjustment: z.number(),
+  scoreAdjustment: CoercedNumber,
 });
 export type NotesAnalysisResult = z.infer<typeof NotesAnalysisSchema>;
 

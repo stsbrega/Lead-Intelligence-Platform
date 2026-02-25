@@ -130,7 +130,9 @@ CONSTRAINTS:
 - Do NOT recommend specific financial products
 - Do NOT make suitability determinations
 - Focus on factual observations from the document
-- Be concise and actionable`;
+- Be concise and actionable
+
+CRITICAL JSON FORMATTING: All numeric fields (score, estimatedValue, priority, estimatedAge, estimatedAnnualIncome, scoreAdjustment) MUST be actual JSON numbers (e.g., 85 not "85"). All boolean fields (requiresHumanApproval) MUST be actual JSON booleans (true/false, not "true"/"false").`;
 
 export type DetectionResult =
   | { type: "same_client"; data: NotesAnalysisResult; modelUsed: string }
