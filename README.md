@@ -2,6 +2,8 @@
 
 An AI-powered lead qualification and scoring system that transforms client transaction data into prioritized advisor opportunities. Built for Wealthsimple's financial advisory team.
 
+**Live app:** [wealthsimple-lead-gen.onrender.com](https://wealthsimple-lead-gen.onrender.com)
+
 > **The advisor's time goes to what matters -- the conversation.**
 
 ## The Problem
@@ -90,7 +92,7 @@ All responses are validated against Zod schemas before reaching the database.
 ### Installation
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/stsbrega/Lead-Intelligence-Platform.git
 cd wealthsimple-lead-gen
 npm install
 ```
@@ -116,7 +118,7 @@ GROQ_API_KEY=gsk_your-key-here        # optional
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000) for local development, or visit the [live deployment](https://wealthsimple-lead-gen.onrender.com).
 
 ### Build for Production
 
