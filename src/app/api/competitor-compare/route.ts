@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+import { createMessageWithFallbackAndValidation } from "@/lib/ai/client";
+import { CompetitorComparisonSchema, type CompetitorComparisonResult } from "@/lib/ai/schemas";
 
 const COMPARISON_TOOL_SCHEMA = {
   name: "submit_competitor_comparison",
@@ -105,26 +102,46 @@ ESTIMATED ANNUAL VALUE AT COMPETITOR: ${estimatedValue ? `$${estimatedValue.toLo
 
 Provide a thorough comparison focusing on the product types this client appears to use at ${competitorName}. The value statement should be specific to this client's situation and dollar amounts.`;
 
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 2048,
-      system: COMPARISON_SYSTEM_PROMPT,
-      tools: [COMPARISON_TOOL_SCHEMA],
-      tool_choice: { type: "tool", name: "submit_competitor_comparison" },
-      messages: [{ role: "user", content: userPrompt }],
-    });
+    const { data } =
+      await createMessageWithFallbackAndValidation<CompetitorComparisonResult>({
+        anthropicParams: {
+          max_tokens: 2048,
+          system: COMPARISON_SYSTEM_PROMPT,
+          tools: [COMPARISON_TOOL_SCHEMA],
+          tool_choice: { type: "tool", name: "submit_competitor_comparison" },
+          messages: [{ role: "user", content: userPrompt }],
+        },
+        groqParams: {
+          system: COMPARISON_SYSTEM_PROMPT,
+          userMessage: userPrompt,
+          tool: COMPARISON_TOOL_SCHEMA,
+          maxTokens: 2048,
+        },
+        zodSchema: CompetitorComparisonSchema,
+        schemaDescription:
+          "Object with: competitorName (string), competitorPros (array of strings), competitorCons (array of strings), wealthsimplePros (array of strings), wealthsimpleCons (array of strings), valueStatement (string), keyDifferentiators (array of {area, competitor, wealthsimple, advantage: wealthsimple|competitor|neutral}), switchingConsiderations (string)",
+        toolName: "submit_competitor_comparison",
+      });
 
-    const toolUse = response.content.find(block => block.type === "tool_use");
-    if (!toolUse || toolUse.type !== "tool_use") {
-      throw new Error("No tool use response from Claude");
-    }
-
-    return NextResponse.json(toolUse.input);
+    return NextResponse.json(data);
   } catch (error) {
     console.error("Competitor comparison error:", error);
-    return NextResponse.json(
-      { error: "Failed to generate comparison" },
-      { status: 500 }
-    );
+
+    let detail = "Unknown error";
+    if (error instanceof Error) {
+      detail = error.message;
+    }
+
+    const isAuthError =
+      detail.includes("401") ||
+      detail.includes("authentication") ||
+      detail.includes("api_key") ||
+      detail.includes("invalid x-api-key");
+
+    const userMessage = isAuthError
+      ? `API authentication failed — check that ANTHROPIC_API_KEY is valid. (${detail})`
+      : `Comparison failed: ${detail}`;
+
+    return NextResponse.json({ error: userMessage }, { status: 500 });
   }
 }

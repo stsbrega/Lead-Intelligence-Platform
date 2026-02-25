@@ -1,8 +1,5 @@
-import Anthropic from "@anthropic-ai/sdk";
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+import { createMessageWithFallbackAndValidation } from "./client";
+import { LeadFromNotesSchema, type LeadFromNotesResult } from "./schemas";
 
 const SYSTEM_PROMPT = `You are an AI lead analysis engine for Wealthsimple's financial advisory team. You are analyzing raw advisor meeting notes from a sales call or client conversation.
 
@@ -108,51 +105,35 @@ const TOOL_SCHEMA = {
   },
 };
 
-export interface LeadFromNotesResult {
-  clientProfile: {
-    firstName: string;
-    lastName: string;
-    occupation: string;
-    city: string;
-    province: string;
-    estimatedAnnualIncome: number;
-    estimatedAge: number;
-  };
-  analysis: {
-    score: number;
-    confidence: "high" | "medium" | "low";
-    signals: { type: string; description: string; severity: "high" | "medium" | "low"; estimatedValue: number }[];
-    summary: string;
-    detailedReasoning: string;
-    recommendedActions: { priority: number; action: string; rationale: string; estimatedImpact: string; requiresHumanApproval: boolean }[];
-    humanDecisionRequired: string;
-  };
-}
-
-export async function createLeadFromNotes(notesText: string): Promise<LeadFromNotesResult> {
+export async function createLeadFromNotes(notesText: string): Promise<LeadFromNotesResult & { modelUsed: string }> {
   const userPrompt = `ADVISOR MEETING NOTES (raw):
 ${notesText}
 
 Extract the client profile and analyze this as a potential lead opportunity. The notes may be rough, contain typos, or have incomplete information — do your best to interpret them.`;
 
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 2500,
-    system: SYSTEM_PROMPT,
-    tools: [TOOL_SCHEMA],
-    tool_choice: { type: "tool", name: "submit_lead_from_notes" },
-    messages: [{ role: "user", content: userPrompt }],
-  });
-
-  const toolUse = response.content.find(block => block.type === "tool_use");
-  if (!toolUse || toolUse.type !== "tool_use") {
-    throw new Error("No tool use response from Claude");
-  }
-
-  const result = toolUse.input as LeadFromNotesResult;
+  const { data: result, modelUsed } =
+    await createMessageWithFallbackAndValidation<LeadFromNotesResult>({
+      anthropicParams: {
+        max_tokens: 2500,
+        system: SYSTEM_PROMPT,
+        tools: [TOOL_SCHEMA],
+        tool_choice: { type: "tool", name: "submit_lead_from_notes" },
+        messages: [{ role: "user", content: userPrompt }],
+      },
+      groqParams: {
+        system: SYSTEM_PROMPT,
+        userMessage: userPrompt,
+        tool: TOOL_SCHEMA,
+        maxTokens: 2500,
+      },
+      zodSchema: LeadFromNotesSchema,
+      schemaDescription:
+        "Object with: clientProfile {firstName, lastName, occupation, city, province, estimatedAnnualIncome (number), estimatedAge (number)} and analysis {score (number 0-100), confidence (high|medium|low), signals (array of {type, description, severity, estimatedValue}), summary (string), detailedReasoning (string), recommendedActions (array of {priority, action, rationale, estimatedImpact, requiresHumanApproval}), humanDecisionRequired (string)}",
+      toolName: "submit_lead_from_notes",
+    });
 
   // Clamp score to 0-100
   result.analysis.score = Math.max(0, Math.min(100, result.analysis.score));
 
-  return result;
+  return { ...result, modelUsed };
 }

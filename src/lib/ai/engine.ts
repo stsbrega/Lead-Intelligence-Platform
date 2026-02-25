@@ -1,11 +1,8 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { createMessageWithFallbackAndValidation } from "./client";
 import type { Client, Transaction, AIAnalysis, LeadSignal } from "@/types";
 import { detectSignals } from "./signals";
 import { SYSTEM_PROMPT, buildUserPrompt, ANALYSIS_TOOL_SCHEMA } from "./prompts";
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+import { LeadAnalysisSchema, type LeadAnalysisResult } from "./schemas";
 
 export async function analyzeClient(
   client: Client,
@@ -17,30 +14,26 @@ export async function analyzeClient(
   // Layer 2: LLM synthesis via Claude tool use
   const userPrompt = buildUserPrompt(client, transactions, preSignals);
 
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 2048,
-    system: SYSTEM_PROMPT,
-    tools: [ANALYSIS_TOOL_SCHEMA],
-    tool_choice: { type: "tool", name: "submit_lead_analysis" },
-    messages: [{ role: "user", content: userPrompt }],
-  });
-
-  // Extract tool use result
-  const toolUse = response.content.find(block => block.type === "tool_use");
-  if (!toolUse || toolUse.type !== "tool_use") {
-    throw new Error("No tool use response from Claude");
-  }
-
-  const analysis = toolUse.input as {
-    score: number;
-    confidence: "high" | "medium" | "low";
-    signals: { type: string; description: string; severity: "high" | "medium" | "low"; estimatedValue: number }[];
-    summary: string;
-    detailedReasoning: string;
-    recommendedActions: { priority: number; action: string; rationale: string; estimatedImpact: string; requiresHumanApproval: boolean }[];
-    humanDecisionRequired: string;
-  };
+  const { data: analysis, modelUsed } =
+    await createMessageWithFallbackAndValidation<LeadAnalysisResult>({
+      anthropicParams: {
+        max_tokens: 2048,
+        system: SYSTEM_PROMPT,
+        tools: [ANALYSIS_TOOL_SCHEMA],
+        tool_choice: { type: "tool", name: "submit_lead_analysis" },
+        messages: [{ role: "user", content: userPrompt }],
+      },
+      groqParams: {
+        system: SYSTEM_PROMPT,
+        userMessage: userPrompt,
+        tool: ANALYSIS_TOOL_SCHEMA,
+        maxTokens: 2048,
+      },
+      zodSchema: LeadAnalysisSchema,
+      schemaDescription:
+        "Object with: score (number 0-100), confidence (high|medium|low), signals (array of {type, description, severity, estimatedValue}), summary (string), detailedReasoning (string), recommendedActions (array of {priority, action, rationale, estimatedImpact, requiresHumanApproval}), humanDecisionRequired (string)",
+      toolName: "submit_lead_analysis",
+    });
 
   return {
     id: `analysis_${client.id}`,
@@ -57,6 +50,6 @@ export async function analyzeClient(
     recommendedActions: analysis.recommendedActions,
     humanDecisionRequired: analysis.humanDecisionRequired,
     analyzedAt: new Date().toISOString(),
-    modelUsed: "claude-sonnet-4-20250514",
+    modelUsed,
   };
 }

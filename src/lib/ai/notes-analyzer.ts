@@ -1,9 +1,6 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { createMessageWithFallbackAndValidation } from "./client";
 import type { NoteAnalysis } from "@/types";
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+import { NotesAnalysisSchema, type NotesAnalysisResult } from "./schemas";
 
 const NOTES_SYSTEM_PROMPT = `You are an AI assistant for Wealthsimple's financial advisory team. You are analyzing meeting notes written by an advisor after a client conversation.
 
@@ -77,27 +74,26 @@ ${notesText}
 
 Analyze these meeting notes and extract insights that supplement the transaction-based analysis.`;
 
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 1500,
-    system: NOTES_SYSTEM_PROMPT,
-    tools: [NOTES_TOOL_SCHEMA],
-    tool_choice: { type: "tool", name: "submit_notes_analysis" },
-    messages: [{ role: "user", content: userPrompt }],
-  });
-
-  const toolUse = response.content.find(block => block.type === "tool_use");
-  if (!toolUse || toolUse.type !== "tool_use") {
-    throw new Error("No tool use response from Claude");
-  }
-
-  const result = toolUse.input as {
-    insights: string[];
-    newSignals: { type: string; description: string; severity: "high" | "medium" | "low" }[];
-    updatedRecommendations: string[];
-    summaryAddendum: string;
-    scoreAdjustment: number;
-  };
+  const { data: result } =
+    await createMessageWithFallbackAndValidation<NotesAnalysisResult>({
+      anthropicParams: {
+        max_tokens: 1500,
+        system: NOTES_SYSTEM_PROMPT,
+        tools: [NOTES_TOOL_SCHEMA],
+        tool_choice: { type: "tool", name: "submit_notes_analysis" },
+        messages: [{ role: "user", content: userPrompt }],
+      },
+      groqParams: {
+        system: NOTES_SYSTEM_PROMPT,
+        userMessage: userPrompt,
+        tool: NOTES_TOOL_SCHEMA,
+        maxTokens: 1500,
+      },
+      zodSchema: NotesAnalysisSchema,
+      schemaDescription:
+        "Object with: insights (array of strings), newSignals (array of {type, description, severity: high|medium|low}), updatedRecommendations (array of strings), summaryAddendum (string), scoreAdjustment (number -20 to +20)",
+      toolName: "submit_notes_analysis",
+    });
 
   // Clamp score adjustment to -20..+20
   result.scoreAdjustment = Math.max(-20, Math.min(20, result.scoreAdjustment));

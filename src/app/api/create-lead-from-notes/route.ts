@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     const clientId = `c_notes_${Date.now()}`;
     const now = new Date().toISOString();
     const analysisId = `analysis_${clientId}`;
-    const { clientProfile, analysis } = result;
+    const { clientProfile, analysis, modelUsed } = result;
 
     // Insert client record
     db.prepare(`
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
       JSON.stringify(analysis.recommendedActions),
       analysis.humanDecisionRequired,
       now,
-      "claude-sonnet-4-20250514"
+      modelUsed
     );
 
     // Initialize lead status
@@ -109,9 +109,23 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Lead creation from notes failed:", error);
-    return NextResponse.json(
-      { error: "Failed to create lead from notes. Check API key configuration." },
-      { status: 500 }
-    );
+
+    let detail = "Unknown error";
+    if (error instanceof Error) {
+      detail = error.message;
+    }
+
+    // Surface specific hints for common Anthropic SDK errors
+    const isAuthError =
+      detail.includes("401") ||
+      detail.includes("authentication") ||
+      detail.includes("api_key") ||
+      detail.includes("invalid x-api-key");
+
+    const userMessage = isAuthError
+      ? `API authentication failed — check that ANTHROPIC_API_KEY is valid. (${detail})`
+      : `Lead creation failed: ${detail}`;
+
+    return NextResponse.json({ error: userMessage }, { status: 500 });
   }
 }
