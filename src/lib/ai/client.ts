@@ -88,13 +88,13 @@ export async function createMessageWithFallback(
 
 // ── Extended function with Groq fallback + Zod validation ───────────────────
 
-export interface ValidatedCallParams {
+export interface ValidatedCallParams<T = unknown> {
   /** Anthropic API params (model is auto-set from fallback chain) */
   anthropicParams: Omit<MessageCreateParamsNonStreaming, "model">;
   /** Groq fallback params (system prompt, user message, tool schema) */
   groqParams: GroqCallParams;
   /** Zod schema to validate the response against */
-  zodSchema: ZodType;
+  zodSchema: ZodType<T>;
   /** Human-readable description of the schema (used in self-heal prompt) */
   schemaDescription: string;
   /** Tool name to extract from Anthropic response */
@@ -120,7 +120,7 @@ export interface ValidatedCallResult<T> {
  * The user never sees a "bad data" error — the AI fixes itself.
  */
 export async function createMessageWithFallbackAndValidation<T>(
-  params: ValidatedCallParams
+  params: ValidatedCallParams<T>
 ): Promise<ValidatedCallResult<T>> {
   // ── Phase 1: Try Claude (Sonnet → Haiku) ──
   try {

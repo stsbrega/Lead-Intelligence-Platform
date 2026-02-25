@@ -77,7 +77,9 @@ export async function callGroq(params: GroqCallParams): Promise<{
   });
 
   const choice = response.choices[0];
-  const toolCall = choice?.message?.tool_calls?.[0];
+  const toolCall = choice?.message?.tool_calls?.[0] as
+    | { type: "function"; function: { name: string; arguments: string } }
+    | undefined;
 
   if (!toolCall || toolCall.function.name !== params.tool.name) {
     throw new Error(
