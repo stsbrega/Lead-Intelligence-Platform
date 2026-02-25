@@ -94,7 +94,6 @@ export default async function LeadDetailPage({ params }: Props) {
   } : null;
 
   const status = (statusRow?.status as string) || "new";
-  const advisorNotes = (statusRow?.advisor_notes as string) || "";
 
   // Compute qualification score
   const qual = computeQualificationScore(id);
@@ -300,7 +299,7 @@ export default async function LeadDetailPage({ params }: Props) {
             <h2 className="text-sm font-semibold text-gray-50 uppercase tracking-wider mb-4">
               Transaction History
             </h2>
-            <div className="max-h-[400px] overflow-y-auto">
+            <div className="max-h-[400px] overflow-y-auto pr-2" style={{ scrollbarGutter: "stable" }}>
               <table className="w-full">
                 <thead className="sticky top-0 bg-ws-white">
                   <tr className="border-b border-gray-10">
@@ -360,7 +359,7 @@ export default async function LeadDetailPage({ params }: Props) {
                   <circle cx="10" cy="15" r="0.75" fill="#E8661A" />
                 </svg>
                 <h2 className="text-sm font-semibold text-ws-orange uppercase tracking-wider">
-                  Advisor Decision Required
+                  Lead Qualification
                 </h2>
               </div>
               <p className="text-sm text-gray-70 leading-relaxed">
@@ -370,7 +369,6 @@ export default async function LeadDetailPage({ params }: Props) {
               <AdvisorDecisionPanel
                 clientId={id}
                 currentStatus={status}
-                currentNotes={advisorNotes}
               />
             </div>
           )}

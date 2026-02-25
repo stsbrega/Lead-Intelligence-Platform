@@ -47,14 +47,20 @@ export default function DashboardPage() {
   }
   const avgComposite = qualScores.size > 0 ? Math.round(totalComposite / qualScores.size) : 0;
 
-  // Opportunity from AI signals
-  let totalOpportunityValue = 0;
+  // Opportunity from AI signals — split into Money In (Investing) vs Money Out (Lending)
+  const MONEY_IN_SIGNALS = new Set(["competitor_rrsp", "competitor_tfsa", "competitor_investment", "large_balance_idle", "income_change"]);
+  const MONEY_OUT_SIGNALS = new Set(["mortgage_refinance", "loan_ending", "competitor_insurance"]);
+  let moneyInValue = 0;
+  let moneyOutValue = 0;
   const signalTypeCounts: Record<string, number> = {};
   for (const a of analyses) {
     const signals = JSON.parse(a.signals || "[]");
     for (const signal of signals) {
-      totalOpportunityValue += signal.estimatedValue || 0;
+      const value = signal.estimatedValue || 0;
       const type = signal.type || "unknown";
+      if (MONEY_IN_SIGNALS.has(type)) moneyInValue += value;
+      else if (MONEY_OUT_SIGNALS.has(type)) moneyOutValue += value;
+      else { moneyInValue += value / 2; moneyOutValue += value / 2; }
       signalTypeCounts[type] = (signalTypeCounts[type] || 0) + 1;
     }
   }
@@ -91,7 +97,7 @@ export default function DashboardPage() {
       </h1>
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         <MetricCard
           label="Total Leads"
           value={String(totalLeads)}
@@ -109,9 +115,15 @@ export default function DashboardPage() {
           subtitle="Across all leads"
         />
         <MetricCard
-          label="Total Opportunity"
-          value={formatCurrency(totalOpportunityValue)}
-          subtitle="Estimated AUM potential"
+          label="Money In"
+          value={formatCurrency(moneyInValue)}
+          subtitle="Investing opportunity"
+          accent="green"
+        />
+        <MetricCard
+          label="Money Out"
+          value={formatCurrency(moneyOutValue)}
+          subtitle="Lending opportunity"
           accent="orange"
         />
       </div>

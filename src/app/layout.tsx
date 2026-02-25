@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Jost, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Sidebar from "@/components/layout/Sidebar";
@@ -31,7 +32,7 @@ export default function RootLayout({
         <Providers>
           <GlobalProgressBar />
           <div className="flex min-h-screen">
-            <Sidebar />
+            <Suspense><Sidebar /></Suspense>
             <main className="flex-1 ml-60 p-8 min-w-0 overflow-x-hidden">
               {children}
             </main>

@@ -52,12 +52,21 @@ export function getScoreLabel(score: number): string {
 
 export function getStatusColor(status: string): string {
   switch (status) {
-    case "new": return "bg-ws-green-light text-ws-green-dark";
-    case "reviewed": return "bg-ws-yellow-light text-dune";
-    case "contacted": return "bg-ws-orange-light text-ws-orange";
-    case "converted": return "bg-ws-green-light text-ws-green-dark";
-    case "dismissed": return "bg-gray-05 text-gray-50";
+    case "new": return "bg-gray-05 text-gray-50";
+    case "approved": return "bg-ws-green-light text-ws-green-dark";
+    case "rejected": return "bg-ws-red-light text-ws-red";
+    case "needs_review": return "bg-ws-orange-light text-ws-orange";
     default: return "bg-gray-05 text-gray-50";
+  }
+}
+
+export function getStatusLabel(status: string): string {
+  switch (status) {
+    case "new": return "New";
+    case "approved": return "Approved";
+    case "rejected": return "Rejected";
+    case "needs_review": return "Needs Review";
+    default: return status.charAt(0).toUpperCase() + status.slice(1);
   }
 }
 

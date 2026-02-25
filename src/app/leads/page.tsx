@@ -7,6 +7,7 @@ import { computeQualificationScore } from "@/lib/scoring/compute";
 import {
   formatCurrency,
   getStatusColor,
+  getStatusLabel,
   getTierBadgeColor,
   getVerticalLabel,
 } from "@/lib/utils/formatting";
@@ -26,19 +27,50 @@ interface LeadRow {
   status: string;
 }
 
+const SOURCE_LABELS: Record<string, string> = {
+  internal_banking: "Banking",
+  internal_wealth: "Wealth Management",
+  internal_mortgage: "Mortgage",
+  external_realty: "Realty Partners",
+  external_marketing: "Marketing Campaigns",
+  external_referral: "Client Referrals",
+  advisor_created: "Advisor Created",
+};
+
 export const dynamic = "force-dynamic";
 
-export default function LeadsPage() {
-  const rows = db.prepare(`
-    SELECT
-      c.id, c.first_name, c.last_name, c.city, c.province,
-      c.occupation, c.annual_income, c.total_balance,
-      a.score, a.confidence, a.signals,
-      ls.status
-    FROM clients c
-    LEFT JOIN analyses a ON c.id = a.client_id
-    LEFT JOIN lead_status ls ON c.id = ls.client_id
-  `).all() as LeadRow[];
+interface Props {
+  searchParams: Promise<{ source?: string }>;
+}
+
+export default async function LeadsPage({ searchParams }: Props) {
+  const { source } = await searchParams;
+
+  let rows: LeadRow[];
+  if (source) {
+    rows = db.prepare(`
+      SELECT
+        c.id, c.first_name, c.last_name, c.city, c.province,
+        c.occupation, c.annual_income, c.total_balance,
+        a.score, a.confidence, a.signals,
+        ls.status
+      FROM clients c
+      LEFT JOIN analyses a ON c.id = a.client_id
+      LEFT JOIN lead_status ls ON c.id = ls.client_id
+      WHERE c.lead_source = ?
+    `).all(source) as LeadRow[];
+  } else {
+    rows = db.prepare(`
+      SELECT
+        c.id, c.first_name, c.last_name, c.city, c.province,
+        c.occupation, c.annual_income, c.total_balance,
+        a.score, a.confidence, a.signals,
+        ls.status
+      FROM clients c
+      LEFT JOIN analyses a ON c.id = a.client_id
+      LEFT JOIN lead_status ls ON c.id = ls.client_id
+    `).all() as LeadRow[];
+  }
 
   // Compute qualification scores for all leads
   const qualScores = new Map(
@@ -52,21 +84,22 @@ export default function LeadsPage() {
     return scoreB - scoreA;
   });
 
+  const pageTitle = source ? (SOURCE_LABELS[source] || "Leads") : "All Leads";
+
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
-        <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-dune">
-          Leads
-        </h1>
-        <div className="flex items-center gap-4">
-          <p className="text-sm text-gray-50">{rows.length} clients analyzed</p>
-          <Link
-            href="/leads/new"
-            className="bg-ws-green text-ws-white text-sm font-medium px-4 py-2 rounded-[6px] hover:brightness-110 transition-all"
-          >
-            + Add New Lead
-          </Link>
+        <div>
+          <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-dune">
+            {pageTitle}
+          </h1>
+          {source && (
+            <Link href="/leads" className="text-xs text-gray-50 hover:text-dune transition-colors">
+              View all leads &rarr;
+            </Link>
+          )}
         </div>
+        <p className="text-sm text-gray-50">{rows.length} clients</p>
       </div>
 
       <Card className="overflow-x-auto">
@@ -160,7 +193,7 @@ export default function LeadsPage() {
                     </td>
                     <td className="px-4 py-4 text-center">
                       <Badge className={getStatusColor(status)}>
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                        {getStatusLabel(status)}
                       </Badge>
                     </td>
                     <td className="px-4 py-4 text-right">
@@ -169,6 +202,13 @@ export default function LeadsPage() {
                   </tr>
               );
             })}
+            {sortedRows.length === 0 && (
+              <tr>
+                <td colSpan={8} className="px-6 py-12 text-center text-gray-50">
+                  No leads found for this source.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </Card>

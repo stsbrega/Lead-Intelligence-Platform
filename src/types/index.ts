@@ -12,6 +12,7 @@ export interface Client {
   accountOpenDate: string;
   totalBalance: number;
   directDepositActive: boolean;
+  leadSource?: string;
 }
 
 export interface Transaction {
@@ -111,7 +112,7 @@ export interface LeadSummary {
   analyzedAt: string;
 }
 
-export type LeadStatus = "new" | "reviewed" | "contacted" | "converted" | "dismissed";
+export type LeadStatus = "new" | "approved" | "rejected" | "needs_review";
 
 // === Lead Qualification Scoring (re-exported from scoring module) ===
 export type {

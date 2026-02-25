@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS clients (
   annual_income REAL,
   account_open_date TEXT,
   total_balance REAL,
-  direct_deposit_active INTEGER DEFAULT 0
+  direct_deposit_active INTEGER DEFAULT 0,
+  lead_source TEXT DEFAULT 'internal_banking'
 );
 
 CREATE TABLE IF NOT EXISTS transactions (

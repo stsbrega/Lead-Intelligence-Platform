@@ -40,6 +40,7 @@ export async function GET(
     accountOpenDate: clientRow.account_open_date,
     totalBalance: clientRow.total_balance,
     directDepositActive: Boolean(clientRow.direct_deposit_active),
+    leadSource: clientRow.lead_source || "internal_banking",
   };
 
   const txns = transactions.map(t => ({

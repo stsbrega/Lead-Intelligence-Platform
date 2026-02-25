@@ -374,6 +374,302 @@ const MOCK_ANALYSES: Record<string, {
     ],
     humanDecisionRequired: "The advisor must determine if Wawanesa offers group benefits that affect her personal investment strategy, whether the signing bonus has any clawback conditions, and her financial priorities at this life stage (travel, debt repayment, home savings). Early-career clients need nurturing not aggressive product pushing.",
   },
+  c021: {
+    score: 72,
+    confidence: "medium",
+    signals: [
+      { type: "competitor_investment", description: "$1,200/mo flowing to RBC Direct Investing (TFSA)", severity: "high", estimatedValue: 14400, relatedTransactionIds: [] },
+      { type: "mortgage_refinance", description: "Mortgage payment of $2,800/mo to Scotiabank", severity: "high", estimatedValue: 168000, relatedTransactionIds: [] },
+    ],
+    summary: "Liam is a marketing director with $1,200/mo to RBC TFSA and a Scotiabank mortgage. Realty partner referral — recent home purchase creates a natural window for full financial planning.",
+    detailedReasoning: "Liam Morrison was referred through a realty partner, suggesting a recent or upcoming home purchase. His $2,800/mo Scotiabank mortgage is the dominant outflow. The $1,200/mo RBC TFSA contribution shows active investing discipline.\n\nAt 35 with $130K income, he is in a prime wealth-building phase. The realty partner relationship provides a warm introduction context.",
+    recommendedActions: [
+      { priority: 1, action: "Schedule investment consolidation review", rationale: "RBC TFSA can be consolidated at lower fees. Use realty partner introduction as warm entry.", estimatedImpact: "$14.4K/year AUM", requiresHumanApproval: true },
+      { priority: 2, action: "Flag for mortgage renewal outreach", rationale: "Scotiabank mortgage represents significant lending opportunity at renewal.", estimatedImpact: "$400K+ mortgage opportunity", requiresHumanApproval: true },
+    ],
+    humanDecisionRequired: "Verify realty partner relationship details and whether the mortgage is newly originated (making refinance less attractive short-term).",
+  },
+  c022: {
+    score: 65,
+    confidence: "medium",
+    signals: [
+      { type: "competitor_rrsp", description: "$800/mo flowing to National Bank (RRSP)", severity: "medium", estimatedValue: 9600, relatedTransactionIds: [] },
+      { type: "mortgage_refinance", description: "Mortgage payment of $2,200/mo to Desjardins", severity: "high", estimatedValue: 132000, relatedTransactionIds: [] },
+    ],
+    summary: "Nadia is an architect in Laval with a Desjardins mortgage and National Bank RRSP. Quebec-based clients often have deep institutional ties. Realty partner referral.",
+    detailedReasoning: "Nadia Bouchard has a $2,200/mo Desjardins mortgage and $800/mo National Bank RRSP. At 41 with $115K income, she has solid savings habits. Quebec clients often have long-standing Desjardins relationships that require a compelling case to move.",
+    recommendedActions: [
+      { priority: 1, action: "Present fee comparison vs National Bank", rationale: "National Bank typically charges higher MERs on managed funds.", estimatedImpact: "$9.6K/year AUM", requiresHumanApproval: true },
+    ],
+    humanDecisionRequired: "Assess strength of existing Desjardins/National Bank ties and whether Quebec-specific products factor into her decision.",
+  },
+  c023: {
+    score: 55,
+    confidence: "medium",
+    signals: [
+      { type: "competitor_tfsa", description: "$500/mo flowing to TD Direct Investing (TFSA)", severity: "medium", estimatedValue: 6000, relatedTransactionIds: [] },
+      { type: "mortgage_refinance", description: "Mortgage payment of $1,800/mo to TD Bank", severity: "medium", estimatedValue: 108000, relatedTransactionIds: [] },
+      { type: "spending_pattern", description: "Irregular commission income ($6K-$10K/mo) suggests cash flow management needs", severity: "low", estimatedValue: 0, relatedTransactionIds: [] },
+    ],
+    summary: "Derek is a real estate agent with variable commission income, a TD mortgage, and TD TFSA. His irregular income pattern suggests cash management and investment timing opportunities.",
+    detailedReasoning: "As a real estate agent, Derek has variable monthly income. His TD relationship spans both mortgage and investment, creating entrenchment but also a single consolidation target. At 29, he's early in wealth building.",
+    recommendedActions: [
+      { priority: 1, action: "Discuss cash flow management strategy", rationale: "Variable income creates opportunity for smart savings timing and high-interest holding.", estimatedImpact: "Improved cash utilization", requiresHumanApproval: true },
+      { priority: 2, action: "Present TD TFSA fee comparison", rationale: "TD Direct Investing charges commission on trades. Wealthsimple offers commission-free.", estimatedImpact: "$6K/year AUM", requiresHumanApproval: true },
+    ],
+    humanDecisionRequired: "Verify income stability and whether real estate market conditions affect his financial planning timeline.",
+  },
+  c024: {
+    score: 78,
+    confidence: "high",
+    signals: [
+      { type: "competitor_rrsp", description: "$1,500/mo flowing to Desjardins Securities (RRSP)", severity: "high", estimatedValue: 18000, relatedTransactionIds: [] },
+      { type: "competitor_insurance", description: "Insurance premiums of $200/mo to Industrial Alliance", severity: "low", estimatedValue: 2400, relatedTransactionIds: [] },
+      { type: "mortgage_refinance", description: "Mortgage payment of $2,600/mo to CIBC", severity: "high", estimatedValue: 156000, relatedTransactionIds: [] },
+    ],
+    summary: "Christine is a senior government director with strong income stability. $1,500/mo RRSP at Desjardins and a CIBC mortgage represent significant consolidation opportunities. Referred through realty partner.",
+    detailedReasoning: "At 52 with $145K government income, Christine has excellent job stability and is approaching peak earning/saving years before retirement. Her $1,500/mo Desjardins RRSP and $2,600/mo CIBC mortgage are the primary opportunities. Government pension will supplement retirement, making RRSP strategy particularly important.",
+    recommendedActions: [
+      { priority: 1, action: "Schedule retirement planning review", rationale: "At 52 with government pension, RRSP strategy optimization is critical for retirement.", estimatedImpact: "$18K/year AUM + accumulated balance", requiresHumanApproval: true },
+      { priority: 2, action: "Review mortgage renewal timeline", rationale: "CIBC mortgage renewal is a natural consolidation moment.", estimatedImpact: "$400K+ mortgage", requiresHumanApproval: true },
+    ],
+    humanDecisionRequired: "Assess government pension details and whether RRSP contributions are optimal given defined benefit pension.",
+  },
+  c025: {
+    score: 74,
+    confidence: "medium",
+    signals: [
+      { type: "competitor_investment", description: "$1,800/mo flowing to HSBC InvestDirect (RRSP)", severity: "high", estimatedValue: 21600, relatedTransactionIds: [] },
+      { type: "mortgage_refinance", description: "Mortgage payment of $2,400/mo to BMO", severity: "high", estimatedValue: 144000, relatedTransactionIds: [] },
+    ],
+    summary: "Vikram is an IT consultant with $1,800/mo flowing to HSBC InvestDirect. With HSBC exiting Canadian retail banking, this is an ideal consolidation moment.",
+    detailedReasoning: "Vikram Mehta has $1,800/mo to HSBC InvestDirect for RRSP — with HSBC's reduced Canadian retail presence, clients may be seeking alternatives. His BMO mortgage of $2,400/mo is a secondary opportunity. At 44 with $140K income, he's in prime accumulation phase.",
+    recommendedActions: [
+      { priority: 1, action: "Proactive HSBC client outreach", rationale: "HSBC's reduced Canadian presence creates natural migration opportunity.", estimatedImpact: "$21.6K/year AUM + accumulated balance", requiresHumanApproval: true },
+      { priority: 2, action: "Bundle BMO mortgage at renewal", rationale: "Full financial consolidation pitch including investment + mortgage.", estimatedImpact: "$350K+ mortgage", requiresHumanApproval: true },
+    ],
+    humanDecisionRequired: "Confirm HSBC account status and whether existing HSBC clients are being transitioned to another institution.",
+  },
+  c026: {
+    score: 58,
+    confidence: "medium",
+    signals: [
+      { type: "competitor_tfsa", description: "$800/mo flowing to Questrade (TFSA)", severity: "medium", estimatedValue: 9600, relatedTransactionIds: [] },
+      { type: "competitor_rrsp", description: "$600/mo flowing to Questrade (RRSP)", severity: "medium", estimatedValue: 7200, relatedTransactionIds: [] },
+    ],
+    summary: "Jessica is a UX designer investing $1,400/mo through Questrade. As a tech-savvy professional, she likely chose Questrade for low fees — Wealthsimple's commission-free trading is a direct competitor.",
+    detailedReasoning: "Jessica Fong is a 31-year-old UX designer making $105K. Her $1,400/mo combined Questrade contributions show active investing. Marketing campaign lead — she's already aware of alternatives.",
+    recommendedActions: [
+      { priority: 1, action: "Present Wealthsimple vs Questrade comparison", rationale: "Commission-free trading + managed portfolio option differentiates from Questrade's DIY-only approach.", estimatedImpact: "$16.8K/year AUM", requiresHumanApproval: true },
+    ],
+    humanDecisionRequired: "Questrade users are typically cost-conscious DIY investors. Verify that Wealthsimple's offering genuinely provides more value than her current setup.",
+  },
+  c027: {
+    score: 52,
+    confidence: "medium",
+    signals: [
+      { type: "competitor_investment", description: "$400/mo flowing to CIBC Investors Edge (TFSA)", severity: "medium", estimatedValue: 4800, relatedTransactionIds: [] },
+      { type: "mortgage_refinance", description: "Mortgage payment of $1,950/mo to RBC", severity: "medium", estimatedValue: 117000, relatedTransactionIds: [] },
+    ],
+    summary: "Omar has modest CIBC investment contributions and an RBC mortgage. Marketing campaign lead with moderate opportunity.",
+    detailedReasoning: "Omar Mansour is a logistics manager at $88K. His $400/mo CIBC TFSA and $1,950/mo RBC mortgage represent split banking relationships. Moderate income limits aggressive consolidation pitch.",
+    recommendedActions: [
+      { priority: 1, action: "Present fee comparison on CIBC TFSA", rationale: "CIBC Investors Edge charges $6.95/trade. Wealthsimple offers commission-free.", estimatedImpact: "$4.8K/year AUM", requiresHumanApproval: true },
+    ],
+    humanDecisionRequired: "Assess whether Omar's split banking is intentional or just legacy. Lower income means consolidation savings may not be as compelling.",
+  },
+  c028: {
+    score: 66,
+    confidence: "medium",
+    signals: [
+      { type: "competitor_rrsp", description: "$1,500/mo flowing to Scotiabank (RRSP)", severity: "high", estimatedValue: 18000, relatedTransactionIds: [] },
+      { type: "competitor_insurance", description: "Insurance premiums of $350/mo to Manulife", severity: "medium", estimatedValue: 4200, relatedTransactionIds: [] },
+    ],
+    summary: "Rachel is a veterinarian with $1,500/mo Scotia RRSP and Manulife insurance. Professional income and age (47) suggest significant accumulated investments.",
+    detailedReasoning: "At 47 with $135K income, Rachel has likely built significant RRSP balance over years of $1,500/mo contributions. Manulife insurance of $350/mo is substantial, suggesting comprehensive coverage. Marketing campaign lead.",
+    recommendedActions: [
+      { priority: 1, action: "Present Scotia RRSP fee comparison", rationale: "Scotia mutual funds often carry 2%+ MER. Fee savings compound significantly on accumulated balance.", estimatedImpact: "$18K/year AUM + large accumulated balance", requiresHumanApproval: true },
+    ],
+    humanDecisionRequired: "Verify total accumulated RRSP balance — years of $1,500/mo contributions could mean $300K+ in assets making fee comparison very compelling.",
+  },
+  c029: {
+    score: 62,
+    confidence: "medium",
+    signals: [
+      { type: "competitor_investment", description: "$1,000/mo flowing to Interactive Brokers (RRSP)", severity: "high", estimatedValue: 12000, relatedTransactionIds: [] },
+      { type: "competitor_investment", description: "$500/mo flowing to Interactive Brokers (TFSA)", severity: "medium", estimatedValue: 6000, relatedTransactionIds: [] },
+    ],
+    summary: "Pavel is a data scientist investing $1,500/mo through Interactive Brokers. As a sophisticated investor, he'll require a strong product and fee argument.",
+    detailedReasoning: "Interactive Brokers users are typically sophisticated, cost-conscious investors. Pavel's $125K income and tech background suggest he actively manages his portfolio. The pitch needs to be product-quality focused, not just fee-based.",
+    recommendedActions: [
+      { priority: 1, action: "Highlight unique Wealthsimple features", rationale: "FHSA, tax-loss harvesting, and integrated platform may appeal to a sophisticated investor.", estimatedImpact: "$18K/year AUM", requiresHumanApproval: true },
+    ],
+    humanDecisionRequired: "Interactive Brokers users are highly informed — verify that switching would genuinely benefit Pavel's specific investment strategy.",
+  },
+  c030: {
+    score: 70,
+    confidence: "medium",
+    signals: [
+      { type: "competitor_investment", description: "$2,000/mo flowing to BMO InvestorLine (RRSP)", severity: "high", estimatedValue: 24000, relatedTransactionIds: [] },
+      { type: "competitor_insurance", description: "Insurance premiums of $250/mo to Pacific Blue Cross", severity: "low", estimatedValue: 3000, relatedTransactionIds: [] },
+    ],
+    summary: "Maya is a school principal approaching retirement with $2,000/mo to BMO InvestorLine. At 56 with likely substantial accumulated investments, fee optimization is very impactful.",
+    detailedReasoning: "At 56 with $110K income, Maya has approximately 9 years to retirement. Her $2,000/mo BMO RRSP contributions over years likely mean a significant accumulated balance. Fee reduction on existing assets could save thousands annually.",
+    recommendedActions: [
+      { priority: 1, action: "Schedule retirement planning consultation", rationale: "Pre-retirement review is critical. BMO fund fees on accumulated balance create compelling savings case.", estimatedImpact: "$24K/year AUM + large accumulated balance", requiresHumanApproval: true },
+    ],
+    humanDecisionRequired: "Assess teacher pension and how it interacts with RRSP strategy. BC teachers have strong defined benefit pensions.",
+  },
+  c031: {
+    score: 48,
+    confidence: "medium",
+    signals: [
+      { type: "competitor_rrsp", description: "$500/mo flowing to TD Direct Investing (RRSP)", severity: "medium", estimatedValue: 6000, relatedTransactionIds: [] },
+    ],
+    summary: "Hannah is a young mechanical engineer with modest $500/mo TD RRSP. Early-career referral lead with long-term relationship potential.",
+    detailedReasoning: "At 28 with $92K income, Hannah is early in her career and investing journey. The $500/mo TD RRSP is her only detected competitive relationship. Long-term potential is high but immediate value is modest.",
+    recommendedActions: [
+      { priority: 1, action: "Present holistic investment plan", rationale: "Young professional open to new relationships. Show TFSA + RRSP + FHSA optimization.", estimatedImpact: "$6K/year AUM + growth potential", requiresHumanApproval: true },
+    ],
+    humanDecisionRequired: "Assess life stage priorities — home savings, student loans, travel — before pushing investment consolidation.",
+  },
+  c032: {
+    score: 79,
+    confidence: "high",
+    signals: [
+      { type: "competitor_investment", description: "$2,500/mo flowing to RBC Dominion Securities (RRSP)", severity: "high", estimatedValue: 30000, relatedTransactionIds: [] },
+      { type: "competitor_investment", description: "$800/mo flowing to RBC Direct Investing (TFSA)", severity: "medium", estimatedValue: 9600, relatedTransactionIds: [] },
+      { type: "competitor_insurance", description: "Insurance premiums of $380/mo to Sun Life Financial", severity: "medium", estimatedValue: 4560, relatedTransactionIds: [] },
+    ],
+    summary: "Jaspreet is an optometrist with $3,300/mo flowing to RBC investments plus Sun Life insurance. Strong referral lead with high-value consolidation opportunity.",
+    detailedReasoning: "Jaspreet Gill has a concentrated RBC investment relationship — $2,500/mo RRSP at Dominion Securities and $800/mo TFSA at RBC Direct. At 43 with $165K income, accumulated balances are likely substantial. Sun Life insurance of $380/mo adds to the financial product landscape. Referred by existing client.",
+    recommendedActions: [
+      { priority: 1, action: "Schedule comprehensive portfolio review", rationale: "RBC Dominion Securities charges 1-1.5% management. Wealthsimple's lower fees on accumulated balance is compelling.", estimatedImpact: "$39.6K/year AUM + accumulated balance", requiresHumanApproval: true },
+      { priority: 2, action: "Review insurance optimization", rationale: "$380/mo insurance may be optimizable.", estimatedImpact: "Cross-sell opportunity", requiresHumanApproval: true },
+    ],
+    humanDecisionRequired: "Verify whether RBC Dominion Securities provides personalized advice that justifies higher fees — some clients value advisor relationships.",
+  },
+  c033: {
+    score: 71,
+    confidence: "medium",
+    signals: [
+      { type: "competitor_investment", description: "$1,500/mo flowing to Desjardins Courtage (RRSP)", severity: "high", estimatedValue: 18000, relatedTransactionIds: [] },
+      { type: "competitor_investment", description: "$700/mo flowing to Desjardins Courtage (TFSA)", severity: "medium", estimatedValue: 8400, relatedTransactionIds: [] },
+    ],
+    summary: "Thomas is a software architect in Quebec City with $2,200/mo flowing to Desjardins investments. Referred by existing client — Quebec institutional loyalty is a consideration.",
+    detailedReasoning: "Thomas has a deep Desjardins relationship typical of Quebec professionals. Combined $2,200/mo in Desjardins investments at 36 with $145K income represents strong accumulation. Referral lead provides warm introduction.",
+    recommendedActions: [
+      { priority: 1, action: "Present fee comparison vs Desjardins Courtage", rationale: "Desjardins management fees are typically higher than Wealthsimple.", estimatedImpact: "$26.4K/year AUM", requiresHumanApproval: true },
+    ],
+    humanDecisionRequired: "Quebec clients may have cultural/institutional ties to Desjardins. Assess whether consolidation is genuinely in Thomas's interest.",
+  },
+  c034: {
+    score: 85,
+    confidence: "high",
+    signals: [
+      { type: "competitor_investment", description: "$3,000/mo flowing to CIBC Wood Gundy (RRSP)", severity: "high", estimatedValue: 36000, relatedTransactionIds: [] },
+      { type: "competitor_tfsa", description: "$1,500/mo flowing to CIBC Wood Gundy (TFSA)", severity: "high", estimatedValue: 18000, relatedTransactionIds: [] },
+      { type: "competitor_insurance", description: "Insurance premiums of $450/mo to Great-West Life", severity: "medium", estimatedValue: 5400, relatedTransactionIds: [] },
+    ],
+    summary: "Diana is a clinic owner with $4,500/mo flowing to CIBC Wood Gundy investments. Highest-value external referral lead with significant accumulated wealth likely in the $500K+ range.",
+    detailedReasoning: "Diana Reyes runs a medical clinic and at 50 with $195K income has likely built substantial wealth. Her $4,500/mo combined CIBC Wood Gundy contributions represent the largest competitor investment flow among external leads. Great-West Life insurance adds to the financial complexity. Referred by existing client.",
+    recommendedActions: [
+      { priority: 1, action: "Schedule wealth management consultation", rationale: "CIBC Wood Gundy charges 1-2% management. Fee savings on $500K+ portfolio would be thousands annually.", estimatedImpact: "$54K/year AUM + $500K+ accumulated", requiresHumanApproval: true },
+      { priority: 2, action: "Explore corporate investment structure", rationale: "As clinic owner, may benefit from corporate investment account.", estimatedImpact: "New corporate account", requiresHumanApproval: true },
+    ],
+    humanDecisionRequired: "CIBC Wood Gundy provides full-service advice. Verify Diana would get equivalent or better service, not just lower fees.",
+  },
+  c035: {
+    score: 42,
+    confidence: "low",
+    signals: [
+      { type: "competitor_tfsa", description: "$500/mo flowing to Questrade (TFSA)", severity: "low", estimatedValue: 6000, relatedTransactionIds: [] },
+      { type: "spending_pattern", description: "Irregular startup income ($4K-$8K/mo) suggests cash flow management needs", severity: "medium", estimatedValue: 0, relatedTransactionIds: [] },
+    ],
+    summary: "Kevin is a startup founder with variable income and modest $500/mo Questrade TFSA. Early-stage entrepreneur — focus on cash management over investment consolidation.",
+    detailedReasoning: "At 27 with a startup, Kevin's income is variable and relatively low. His $500/mo Questrade TFSA is modest. The primary value is long-term relationship building as his startup grows.",
+    recommendedActions: [
+      { priority: 1, action: "Discuss high-interest savings for variable income", rationale: "Wealthsimple Cash offers competitive interest for parking variable income.", estimatedImpact: "Cash account opening", requiresHumanApproval: true },
+    ],
+    humanDecisionRequired: "Startup founders have unpredictable financial trajectories. Do not recommend aggressive investing given income variability.",
+  },
+  c036: {
+    score: 63,
+    confidence: "medium",
+    signals: [
+      { type: "competitor_investment", description: "$1,200/mo flowing to TD Waterhouse (RRSP)", severity: "high", estimatedValue: 14400, relatedTransactionIds: [] },
+      { type: "competitor_insurance", description: "Insurance premiums of $280/mo to Canada Life", severity: "low", estimatedValue: 3360, relatedTransactionIds: [] },
+    ],
+    summary: "Alicia is a nurse practitioner with $1,200/mo TD Waterhouse RRSP. Healthcare professional referral with solid income stability.",
+    detailedReasoning: "Alicia has stable healthcare sector income at $108K. Her $1,200/mo TD Waterhouse RRSP and $280/mo Canada Life insurance show organized financial planning. At 39, significant accumulation ahead.",
+    recommendedActions: [
+      { priority: 1, action: "Present TD Waterhouse fee comparison", rationale: "TD Waterhouse charges trading commissions + fund MERs. Consolidation pitch.", estimatedImpact: "$14.4K/year AUM", requiresHumanApproval: true },
+    ],
+    humanDecisionRequired: "Verify whether TD Waterhouse relationship is linked to Saskatchewan Health Authority group benefits.",
+  },
+  c037: {
+    score: 80,
+    confidence: "high",
+    signals: [
+      { type: "competitor_investment", description: "$2,500/mo flowing to Scotia iTRADE (RRSP)", severity: "high", estimatedValue: 30000, relatedTransactionIds: [] },
+      { type: "competitor_investment", description: "$1,000/mo flowing to Scotia iTRADE (TFSA)", severity: "high", estimatedValue: 12000, relatedTransactionIds: [] },
+      { type: "competitor_insurance", description: "Insurance premiums of $320/mo to Manulife", severity: "medium", estimatedValue: 3840, relatedTransactionIds: [] },
+    ],
+    summary: "Martin is a patent attorney with $3,500/mo flowing to Scotia iTRADE. High income ($175K) at 45 means significant accumulated wealth. Strong referral lead.",
+    detailedReasoning: "Martin Nguyen's $3,500/mo combined Scotia iTRADE investments plus Manulife insurance represent a comprehensive financial relationship. At 45 with $175K income, accumulated balance is likely $400K+. Referred by existing client.",
+    recommendedActions: [
+      { priority: 1, action: "Schedule investment consolidation review", rationale: "Scotia iTRADE charges $9.99/trade. Combined with fund fees, savings are compelling.", estimatedImpact: "$42K/year AUM + $400K+ accumulated", requiresHumanApproval: true },
+    ],
+    humanDecisionRequired: "Assess whether Martin's Scotia relationship includes preferential rates or corporate law firm banking ties.",
+  },
+  c038: {
+    score: 57,
+    confidence: "medium",
+    signals: [
+      { type: "competitor_investment", description: "$800/mo flowing to BMO InvestorLine (RRSP)", severity: "medium", estimatedValue: 9600, relatedTransactionIds: [] },
+      { type: "competitor_tfsa", description: "$500/mo flowing to BMO InvestorLine (TFSA)", severity: "medium", estimatedValue: 6000, relatedTransactionIds: [] },
+    ],
+    summary: "Samira is a financial analyst with $1,300/mo BMO investments. Her finance background means she'll evaluate any switch analytically.",
+    detailedReasoning: "At 34 with $98K income, Samira's $1,300/mo BMO investments are solid. As a financial analyst, she understands fee structures and will need a data-driven pitch. Referral lead.",
+    recommendedActions: [
+      { priority: 1, action: "Prepare detailed fee analysis", rationale: "Financial analysts respond to numbers. Show exact fee savings comparison.", estimatedImpact: "$15.6K/year AUM", requiresHumanApproval: true },
+    ],
+    humanDecisionRequired: "Financial professionals may have strong opinions on investment strategy. Respect her expertise and focus on platform features.",
+  },
+  c039: {
+    score: 75,
+    confidence: "high",
+    signals: [
+      { type: "competitor_investment", description: "$3,500/mo flowing to Edward Jones (RRIF)", severity: "high", estimatedValue: 42000, relatedTransactionIds: [] },
+      { type: "competitor_insurance", description: "Insurance premiums of $400/mo to Sun Life Financial", severity: "medium", estimatedValue: 4800, relatedTransactionIds: [] },
+      { type: "large_balance_idle", description: "High chequing balance of $215,000 for a retired individual", severity: "high", estimatedValue: 215000, relatedTransactionIds: [] },
+    ],
+    summary: "Tyler is a retired executive with $3,500/mo Edward Jones RRIF withdrawals, $215K idle chequing balance, and Sun Life insurance. Very high-value retiree lead.",
+    detailedReasoning: "Tyler Brooks is a 60-year-old retired executive with $215K in chequing — significantly high idle cash. His Edward Jones RRIF of $3,500/mo suggests a large portfolio ($500K+). At $65K pension income, the RRIF and idle cash represent the core opportunity. Referred by existing client.",
+    recommendedActions: [
+      { priority: 1, action: "Schedule retirement income optimization review", rationale: "$215K idle cash is losing to inflation. High-interest savings or GIC ladder needed.", estimatedImpact: "$215K cash optimization", requiresHumanApproval: true },
+      { priority: 2, action: "Present Edward Jones fee comparison", rationale: "Edward Jones charges 1.5%+ advisory fees. On a $500K+ RRIF, fee savings are substantial.", estimatedImpact: "$42K/year AUM + $500K+ accumulated", requiresHumanApproval: true },
+    ],
+    humanDecisionRequired: "Retirees need careful handling. Verify Tyler's income needs, health status, and whether Edward Jones provides valued personal advice.",
+  },
+  c040: {
+    score: 88,
+    confidence: "high",
+    signals: [
+      { type: "competitor_investment", description: "$3,500/mo flowing to RBC Dominion Securities (RRSP)", severity: "high", estimatedValue: 42000, relatedTransactionIds: [] },
+      { type: "competitor_tfsa", description: "$1,500/mo flowing to RBC Direct Investing (TFSA)", severity: "high", estimatedValue: 18000, relatedTransactionIds: [] },
+      { type: "competitor_insurance", description: "Insurance premiums of $500/mo to Great-West Life", severity: "medium", estimatedValue: 6000, relatedTransactionIds: [] },
+      { type: "large_balance_idle", description: "Recent $45K consulting fee deposit adds to investable capital", severity: "high", estimatedValue: 45000, relatedTransactionIds: [] },
+    ],
+    summary: "Preethi is a dermatologist with $5,000/mo flowing to RBC investments, Great-West Life insurance, and a recent $45K consulting deposit. Highest-scoring external lead with $600K+ estimated portfolio.",
+    detailedReasoning: "Preethi Ranganathan has the strongest external lead profile. At 42 with $230K income, her $5,000/mo combined RBC investments suggest $600K+ accumulated. A recent $45K consulting fee adds immediate investable capital. Great-West Life insurance at $500/mo indicates comprehensive coverage. Referred by existing client with strong engagement signals.",
+    recommendedActions: [
+      { priority: 1, action: "Priority wealth management consultation", rationale: "Highest-value external lead. RBC management fees on $600K+ portfolio means thousands in potential savings.", estimatedImpact: "$60K/year AUM + $600K+ accumulated + $45K new capital", requiresHumanApproval: true },
+      { priority: 2, action: "Explore corporate investment structure", rationale: "As a specialist physician, corporate investment account offers tax-efficient retained earnings.", estimatedImpact: "New corporate account", requiresHumanApproval: true },
+      { priority: 3, action: "Review insurance optimization", rationale: "$500/mo insurance may be over-covered or could be optimized.", estimatedImpact: "Cross-sell opportunity", requiresHumanApproval: true },
+    ],
+    humanDecisionRequired: "RBC Dominion Securities provides full-service wealth management. Verify that Preethi would receive equivalent advice quality. Also assess whether her medical corporation structure requires specialized investment advice.",
+  },
 };
 
 async function main() {
