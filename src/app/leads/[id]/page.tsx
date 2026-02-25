@@ -6,6 +6,7 @@ import Badge from "@/components/ui/Badge";
 import ScoreBar from "@/components/ui/ScoreBar";
 import AdvisorDecisionPanel from "@/components/leads/AdvisorDecisionPanel";
 import NotesDropZone from "@/components/leads/NotesDropZone";
+import CompetitorSignals from "@/components/leads/CompetitorSignals";
 import { computeQualificationScore } from "@/lib/scoring/compute";
 import type { NoteAnalysis } from "@/types";
 import type { DimensionScore, CriterionResult } from "@/lib/scoring/types";
@@ -276,40 +277,21 @@ export default async function LeadDetailPage({ params }: Props) {
             </Card>
           )}
 
-          {/* Detected Signals */}
+          {/* Detected Signals — with competitor comparison buttons */}
           {analysis && analysis.signals.length > 0 && (
             <Card className="p-6">
               <h2 className="text-sm font-semibold text-gray-50 uppercase tracking-wider mb-4">
                 Detected Signals
               </h2>
-              <div className="space-y-3">
-                {analysis.signals.map((signal: {
-                  type: string;
-                  description: string;
-                  severity: string;
-                  estimatedValue: number;
-                }, i: number) => (
-                  <div
-                    key={i}
-                    className={`border-l-4 rounded-[6px] p-4 ${getSeverityColor(signal.severity)}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-xs font-semibold text-gray-50 uppercase">
-                          {getSignalTypeLabel(signal.type)}
-                        </span>
-                        <p className="text-sm text-dune mt-0.5">{signal.description}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-semibold text-dune">
-                          {formatCurrency(signal.estimatedValue)}
-                        </p>
-                        <p className="text-xs text-gray-50">est. annual value</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <CompetitorSignals
+                signals={analysis.signals}
+                clientContext={{
+                  annualIncome: client.annualIncome,
+                  totalBalance: client.totalBalance,
+                  age: client.age,
+                  province: client.province,
+                }}
+              />
             </Card>
           )}
 
