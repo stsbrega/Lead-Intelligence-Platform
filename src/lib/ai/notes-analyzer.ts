@@ -1,10 +1,10 @@
 import { createMessageWithFallback, createMessageWithFallbackAndValidation } from "./client";
 import type { NoteAnalysis } from "@/types";
-import { NotesAnalysisSchema, LeadFromNotesSchema, type NotesAnalysisResult, type LeadFromNotesResult } from "./schemas";
+import { NotesAnalysisSchema, LeadFromNotesSchema, BankStatementSchema, type NotesAnalysisResult, type LeadFromNotesResult, type BankStatementResult } from "./schemas";
 import { NEW_LEAD_TOOL_SCHEMA } from "./lead-from-notes";
 
-/** Cap document text to avoid token-budget issues with large PDFs. */
-const MAX_INPUT_CHARS = 20_000;
+/** Cap document text — raised to 30k for bank statements (tabular, token-efficient). */
+const MAX_INPUT_CHARS = 30_000;
 function truncateInput(text: string): string {
   if (text.length <= MAX_INPUT_CHARS) return text;
   return (
@@ -70,6 +70,75 @@ const NOTES_TOOL_SCHEMA = {
   },
 };
 
+const BANK_STATEMENT_TOOL_SCHEMA = {
+  name: "submit_bank_statement_data",
+  description:
+    "Submit structured data extracted from a bank or financial institution statement. Use this when the uploaded document contains tabular transaction data with dates, descriptions, and amounts.",
+  input_schema: {
+    type: "object" as const,
+    required: ["accountHolder", "statementPeriod", "transactions", "summary"],
+    properties: {
+      accountHolder: {
+        type: "object" as const,
+        required: ["firstName", "lastName"],
+        properties: {
+          firstName: { type: "string" as const },
+          lastName: { type: "string" as const },
+        },
+      },
+      statementPeriod: {
+        type: "object" as const,
+        required: ["startDate", "endDate"],
+        properties: {
+          startDate: { type: "string" as const, description: "YYYY-MM-DD" },
+          endDate: { type: "string" as const, description: "YYYY-MM-DD" },
+        },
+      },
+      transactions: {
+        type: "array" as const,
+        description: "All transactions from the statement.",
+        items: {
+          type: "object" as const,
+          required: ["date", "description", "amount", "category", "merchantName", "type", "isRecurring"],
+          properties: {
+            date: { type: "string" as const, description: "YYYY-MM-DD" },
+            description: { type: "string" as const, description: "Transaction description as shown on statement" },
+            amount: { type: "number" as const, description: "NEGATIVE for withdrawals/debits, POSITIVE for deposits/credits" },
+            category: {
+              type: "string" as const,
+              enum: [
+                "investment_competitor", "rrsp_contribution", "tfsa_contribution",
+                "mortgage_payment", "insurance_premium", "salary_deposit",
+                "government_deposit", "large_transfer", "loan_payment",
+                "subscription", "groceries", "dining", "transportation",
+                "utilities", "rent", "healthcare", "entertainment", "shopping", "other",
+              ],
+              description: "Use investment_competitor for transfers to competing brokerages (RBC, TD, BMO, etc). Use rrsp_contribution/tfsa_contribution for labeled registered account transfers.",
+            },
+            merchantName: { type: "string" as const },
+            type: {
+              type: "string" as const,
+              enum: ["debit", "credit", "pad", "eft", "e-transfer", "direct-deposit"],
+              description: "pad = pre-authorized debit, eft = electronic funds transfer, direct-deposit = payroll",
+            },
+            isRecurring: { type: "boolean" as const, description: "True if recurring (same amount, regular interval)" },
+          },
+        },
+      },
+      summary: {
+        type: "object" as const,
+        required: ["closingBalance", "totalInflows", "totalOutflows", "keyObservations"],
+        properties: {
+          closingBalance: { type: "number" as const },
+          totalInflows: { type: "number" as const, description: "Total deposits/credits" },
+          totalOutflows: { type: "number" as const, description: "Total withdrawals/debits (as positive number)" },
+          keyObservations: { type: "string" as const, description: "2-3 sentences: notable patterns, competitor transfers, large deposits" },
+        },
+      },
+    },
+  },
+};
+
 export async function analyzeNotes(
   clientName: string,
   existingSummary: string | null,
@@ -117,25 +186,43 @@ Analyze these meeting notes and extract insights that supplement the transaction
 
 const DETECTION_SYSTEM_PROMPT = `You are an AI assistant for Wealthsimple's financial advisory team.
 
-An advisor has uploaded a document while viewing a specific client's profile. Your FIRST task is to determine whether this document is about the CURRENT CLIENT or about a DIFFERENT PERSON.
+An advisor has uploaded a document while viewing a specific client's profile. Your FIRST task is to CLASSIFY the document, then process it with the correct tool.
 
-RULES FOR DETERMINING RELEVANCE:
-- If the document contains a name that matches or closely matches the current client, it is about the current client. Use the submit_notes_analysis tool.
-- If the document contains a clearly different person's name (e.g., a bank statement header for "Michael Thornton" when the current client is "Jane Smith"), it is about a different person. Use the submit_new_lead_from_notes tool.
-- If the document has no identifiable name but contains account details, transaction data, or notes that could plausibly be about the current client, default to treating it as the current client. Use submit_notes_analysis.
-- When in doubt, default to submit_notes_analysis for the current client.
+STEP 1 — CLASSIFY THE DOCUMENT:
 
-IF THE DOCUMENT IS ABOUT THE CURRENT CLIENT (submit_notes_analysis):
+A) BANK STATEMENT — if the document contains:
+   - Tabular transaction data (rows with dates, descriptions, amounts)
+   - Account summary, opening/closing balance, statement period
+   - Financial institution branding (TD, RBC, BMO, CIBC, Scotiabank, etc.)
+   → Check if the account holder name matches the current client:
+     - If it MATCHES or closely matches → use submit_bank_statement_data
+     - If it is a clearly DIFFERENT person → use submit_lead_from_notes
+
+B) MEETING NOTES — if the document is narrative text with:
+   - Advisor observations, client conversation notes, call summaries
+   - Qualitative information about goals, concerns, life events
+   → Use submit_notes_analysis (for the current client)
+
+C) DIFFERENT PERSON — if the document is about a clearly different person
+   (regardless of document type) → use submit_lead_from_notes
+
+When in doubt, default to submit_notes_analysis.
+
+STEP 2 — PROCESS WITH THE CHOSEN TOOL:
+
+IF BANK STATEMENT (submit_bank_statement_data):
+- Extract ALL transactions with proper dates (YYYY-MM-DD), amounts (NEGATIVE for withdrawals, POSITIVE for deposits), categories, and types
+- Categorize each transaction: use "investment_competitor" for transfers to competing brokerages (RBC Direct Investing, TD Waterhouse, BMO InvestorLine, etc.), "rrsp_contribution"/"tfsa_contribution" for labeled registered accounts, "mortgage_payment" for mortgage/MTG payments, "salary_deposit" for payroll
+- Identify recurring transactions (same amount, regular interval)
+- Provide closing balance, total inflows/outflows, and key observations
+
+IF MEETING NOTES (submit_notes_analysis):
 - Extract key insights that supplement the existing analysis
 - Identify NEW signals not captured by transaction data
-- Suggest updated recommendations
-- Provide a brief summary addendum
-- Suggest a score adjustment (-20 to +20)
+- Suggest updated recommendations and a score adjustment (-20 to +20)
 
-IF THE DOCUMENT IS ABOUT A DIFFERENT PERSON (submit_new_lead_from_notes):
-- Extract the new person's client profile (name, occupation, city, province, income, age)
-- Analyze them as a potential lead opportunity
-- Score them 0-100 based on signals found
+IF DIFFERENT PERSON (submit_lead_from_notes):
+- Extract the person's profile and analyze as a potential lead (score 0-100)
 
 CONSTRAINTS:
 - Do NOT recommend specific financial products
@@ -143,16 +230,17 @@ CONSTRAINTS:
 - Focus on factual observations from the document
 - Be concise and actionable
 
-CRITICAL JSON FORMATTING: All numeric fields (score, estimatedValue, priority, estimatedAge, estimatedAnnualIncome, scoreAdjustment) MUST be actual JSON numbers (e.g., 85 not "85"). All boolean fields (requiresHumanApproval) MUST be actual JSON booleans (true/false, not "true"/"false").`;
+CRITICAL JSON FORMATTING: All numeric fields MUST be actual JSON numbers (e.g., 85 not "85"). All boolean fields MUST be actual JSON booleans (true/false, not "true"/"false").`;
 
 export type DetectionResult =
   | { type: "same_client"; data: NotesAnalysisResult; modelUsed: string }
+  | { type: "bank_statement"; data: BankStatementResult; modelUsed: string }
   | { type: "different_person"; data: LeadFromNotesResult; modelUsed: string };
 
 /**
- * Analyze a document with auto-detection: determines whether the document
- * is about the current client (supplementary analysis) or a different person
- * (new lead creation). Uses a two-tool-choice pattern in a single AI call.
+ * Analyze a document with auto-detection: classifies the document as a bank
+ * statement, meeting notes (same client), or different person, then extracts
+ * the appropriate structured data. Uses a three-tool-choice pattern.
  */
 export async function analyzeNotesWithDetection(
   clientName: string,
@@ -168,13 +256,13 @@ ${existingScore !== null ? `CURRENT SCORE: ${existingScore}/100` : ""}
 UPLOADED DOCUMENT:
 ${trimmed}
 
-Determine if this document is about the current client (${clientName}) or a different person, then analyze accordingly using the appropriate tool.`;
+Classify this document (bank statement, meeting notes, or different person) and process it with the appropriate tool. The current client is ${clientName}.`;
 
   try {
     const response = await createMessageWithFallback({
-      max_tokens: 4096,
+      max_tokens: 8192,
       system: DETECTION_SYSTEM_PROMPT,
-      tools: [NOTES_TOOL_SCHEMA, NEW_LEAD_TOOL_SCHEMA],
+      tools: [NOTES_TOOL_SCHEMA, BANK_STATEMENT_TOOL_SCHEMA, NEW_LEAD_TOOL_SCHEMA],
       tool_choice: { type: "any" },
       messages: [{ role: "user", content: userPrompt }],
     });
@@ -189,6 +277,12 @@ Determine if this document is about the current client (${clientName}) or a diff
       const data = (parsed.success ? parsed.data : toolUse.input) as NotesAnalysisResult;
       data.scoreAdjustment = Math.max(-20, Math.min(20, data.scoreAdjustment));
       return { type: "same_client", data, modelUsed: response.model };
+    }
+
+    if (toolUse.name === "submit_bank_statement_data") {
+      const parsed = BankStatementSchema.safeParse(toolUse.input);
+      const data = (parsed.success ? parsed.data : toolUse.input) as BankStatementResult;
+      return { type: "bank_statement", data, modelUsed: response.model };
     }
 
     if (toolUse.name === "submit_lead_from_notes") {

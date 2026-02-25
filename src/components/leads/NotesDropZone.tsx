@@ -10,6 +10,12 @@ interface RedirectData {
   score: number;
 }
 
+interface BankResult {
+  transactionsAdded: number;
+  newScore: number;
+  keyObservations: string;
+}
+
 interface Props {
   clientId: string;
   clientName: string;
@@ -28,6 +34,7 @@ export default function NotesDropZone({ clientId, clientName, existingAnalyses }
   const [errorMessage, setErrorMessage] = useState("");
   const [fileName, setFileName] = useState("");
   const [redirectData, setRedirectData] = useState<RedirectData | null>(null);
+  const [bankResult, setBankResult] = useState<BankResult | null>(null);
   const [fileProgress, setFileProgress] = useState({ current: 0, total: 0 });
   const dragCounter = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -75,7 +82,18 @@ export default function NotesDropZone({ clientId, clientName, existingAnalyses }
       return true;
     }
 
-    setAnalyses(prev => [data.noteAnalysis, ...prev]);
+    if (data.bankStatementProcessed) {
+      setBankResult({
+        transactionsAdded: data.transactionsAdded,
+        newScore: data.newScore,
+        keyObservations: data.keyObservations,
+      });
+      return true;
+    }
+
+    if (data.noteAnalysis) {
+      setAnalyses(prev => [data.noteAnalysis, ...prev]);
+    }
     return true;
   }, [clientId]);
 
@@ -93,6 +111,7 @@ export default function NotesDropZone({ clientId, clientName, existingAnalyses }
     }
 
     setRedirectData(null);
+    setBankResult(null);
     setFileProgress({ current: 0, total: valid.length });
     let lastRedirect: RedirectData | null = null;
 
@@ -117,6 +136,9 @@ export default function NotesDropZone({ clientId, clientName, existingAnalyses }
     }
 
     setStatus("success");
+
+    // Refresh SSR sections (transactions table, AI analysis, signals, score)
+    router.refresh();
 
     if (redirectData || lastRedirect) {
       const rd = redirectData ?? lastRedirect;
@@ -214,13 +236,25 @@ export default function NotesDropZone({ clientId, clientName, existingAnalyses }
           </>
         )}
 
-        {status === "success" && !redirectData && (
+        {status === "success" && !redirectData && !bankResult && (
           <>
             <CheckIcon />
             <p className="text-sm font-semibold text-ws-green-dark mt-2">
               {fileProgress.total > 1
                 ? `${fileProgress.total} documents analyzed`
                 : "Analysis complete"}
+            </p>
+          </>
+        )}
+
+        {status === "success" && bankResult && (
+          <>
+            <CheckIcon />
+            <p className="text-sm font-semibold text-ws-green-dark mt-2">
+              Bank statement processed &mdash; {bankResult.transactionsAdded} transactions added
+            </p>
+            <p className="text-xs text-gray-50 mt-1">
+              Updated score: {bankResult.newScore}/100
             </p>
           </>
         )}

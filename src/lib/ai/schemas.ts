@@ -99,7 +99,50 @@ export const NotesAnalysisSchema = z.object({
 });
 export type NotesAnalysisResult = z.infer<typeof NotesAnalysisSchema>;
 
-// ── 4. submit_competitor_comparison (competitor-compare/route.ts) ───────────
+// ── 4. submit_bank_statement_data (notes-analyzer.ts) ─────────────────────
+
+const TransactionCategoryEnum = z.enum([
+  "investment_competitor", "rrsp_contribution", "tfsa_contribution",
+  "mortgage_payment", "insurance_premium", "salary_deposit",
+  "government_deposit", "large_transfer", "loan_payment",
+  "subscription", "groceries", "dining", "transportation",
+  "utilities", "rent", "healthcare", "entertainment", "shopping", "other",
+]);
+
+const TransactionTypeEnum = z.enum([
+  "debit", "credit", "pad", "eft", "e-transfer", "direct-deposit",
+]);
+
+const ExtractedTransactionSchema = z.object({
+  date: z.string(),
+  description: z.string(),
+  amount: CoercedNumber,
+  category: TransactionCategoryEnum,
+  merchantName: z.string(),
+  type: TransactionTypeEnum,
+  isRecurring: CoercedBoolean,
+});
+
+export const BankStatementSchema = z.object({
+  accountHolder: z.object({
+    firstName: z.string(),
+    lastName: z.string(),
+  }),
+  statementPeriod: z.object({
+    startDate: z.string(),
+    endDate: z.string(),
+  }),
+  transactions: z.array(ExtractedTransactionSchema),
+  summary: z.object({
+    closingBalance: CoercedNumber,
+    totalInflows: CoercedNumber,
+    totalOutflows: CoercedNumber,
+    keyObservations: z.string(),
+  }),
+});
+export type BankStatementResult = z.infer<typeof BankStatementSchema>;
+
+// ── 5. submit_competitor_comparison (competitor-compare/route.ts) ───────────
 
 const DifferentiatorSchema = z.object({
   area: z.string(),
