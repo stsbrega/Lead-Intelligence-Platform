@@ -17,6 +17,7 @@ interface BankResult {
   transactionsAdded: number;
   newScore: number;
   keyObservations: string;
+  alreadyOnFile: boolean;
 }
 
 interface Props {
@@ -101,6 +102,7 @@ export default function NotesDropZone({ clientId, clientName, existingAnalyses }
         transactionsAdded: data.transactionsAdded,
         newScore: data.newScore,
         keyObservations: data.keyObservations,
+        alreadyOnFile: data.alreadyOnFile || false,
       });
       return true;
     }
@@ -308,12 +310,25 @@ export default function NotesDropZone({ clientId, clientName, existingAnalyses }
         {status === "success" && bankResult && (
           <>
             <CheckIcon />
-            <p className="text-sm font-semibold text-ws-green-dark mt-2">
-              Bank statement processed &mdash; {bankResult.transactionsAdded} transactions added
-            </p>
-            <p className="text-xs text-gray-50 mt-1">
-              Updated score: {bankResult.newScore}/100
-            </p>
+            {bankResult.alreadyOnFile ? (
+              <>
+                <p className="text-sm font-semibold text-ws-orange mt-2">
+                  Bank statement already on file
+                </p>
+                <p className="text-xs text-gray-50 mt-1">
+                  All transactions from this statement were previously uploaded
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-semibold text-ws-green-dark mt-2">
+                  Bank statement processed &mdash; {bankResult.transactionsAdded} transactions added
+                </p>
+                <p className="text-xs text-gray-50 mt-1">
+                  Updated score: {bankResult.newScore}/100
+                </p>
+              </>
+            )}
           </>
         )}
 

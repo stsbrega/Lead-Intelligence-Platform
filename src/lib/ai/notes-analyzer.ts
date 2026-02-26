@@ -13,6 +13,53 @@ function truncateInput(text: string): string {
   );
 }
 
+// ── Existing-context support ─────────────────────────────────────────────────
+
+/** Context about data already captured for this client. */
+export interface ExistingClientContext {
+  /** Summary addenda from previously uploaded note analyses. */
+  previousNoteSummaries: string[];
+  /** Date range of existing bank transactions, if any. */
+  existingTransactionPeriod: { startDate: string; endDate: string } | null;
+  /** Total count of existing transactions on file. */
+  existingTransactionCount: number;
+}
+
+/** Build a prompt block describing what data is already captured for this client. */
+function buildExistingContextBlock(ctx: ExistingClientContext): string {
+  const parts: string[] = [];
+
+  if (ctx.previousNoteSummaries.length === 0 && ctx.existingTransactionCount === 0) {
+    return "";
+  }
+
+  parts.push("\nALREADY-CAPTURED DATA FOR THIS CLIENT:");
+
+  if (ctx.previousNoteSummaries.length > 0) {
+    parts.push("Previous note analyses (already captured — do NOT repeat these insights):");
+    ctx.previousNoteSummaries.forEach((summary, i) => {
+      parts.push(`  ${i + 1}. ${summary}`);
+    });
+  }
+
+  if (ctx.existingTransactionCount > 0) {
+    let txnLine = `Existing bank transactions: ${ctx.existingTransactionCount} transactions on file`;
+    if (ctx.existingTransactionPeriod) {
+      txnLine += ` (covering ${ctx.existingTransactionPeriod.startDate} to ${ctx.existingTransactionPeriod.endDate})`;
+    }
+    parts.push(txnLine);
+  }
+
+  parts.push(
+    "\nIMPORTANT: If this document overlaps with the already-captured data above:",
+    "- For meeting notes: focus ONLY on net-new insights not already listed. If no new information, set scoreAdjustment to 0 and note the duplication.",
+    "- For bank statements: extract all transactions (the system deduplicates automatically). Note if the statement period overlaps existing data.",
+    "- If the document appears identical to a previously uploaded document, clearly state so."
+  );
+
+  return parts.join("\n");
+}
+
 const NOTES_SYSTEM_PROMPT = `You are an AI assistant for Wealthsimple's financial advisory team. You are analyzing meeting notes written by an advisor after a client conversation.
 
 YOUR TASK:
@@ -243,6 +290,11 @@ CONSTRAINTS:
 - Focus on factual observations from the document
 - Be concise and actionable
 
+ALREADY-CAPTURED DATA:
+If the user prompt includes an "ALREADY-CAPTURED DATA" section, use it to avoid duplicating previously extracted information:
+- For meeting notes: only extract net-new insights not already captured. If the document content matches a previous analysis summary, set scoreAdjustment to 0 and note "This information was previously captured."
+- For bank statements: always extract all transactions fully (the system handles deduplication on its end). Note in keyObservations if the statement period overlaps existing data.
+
 CRITICAL JSON FORMATTING: All numeric fields MUST be actual JSON numbers (e.g., 85 not "85"). All boolean fields MUST be actual JSON booleans (true/false, not "true"/"false").`;
 
 export type DetectionResult =
@@ -254,17 +306,24 @@ export type DetectionResult =
  * Analyze a document with auto-detection: classifies the document as a bank
  * statement, meeting notes (same client), or different person, then extracts
  * the appropriate structured data. Uses a three-tool-choice pattern.
+ *
+ * @param existingContext – previously captured data for this client (notes,
+ *   transactions) so the AI can avoid duplicating already-known information.
  */
 export async function analyzeNotesWithDetection(
   clientName: string,
   existingSummary: string | null,
   existingScore: number | null,
-  notesText: string
+  notesText: string,
+  existingContext?: ExistingClientContext
 ): Promise<DetectionResult> {
   const trimmed = truncateInput(notesText);
+  const contextBlock = existingContext ? buildExistingContextBlock(existingContext) : "";
+
   const userPrompt = `CURRENT CLIENT: ${clientName}
 ${existingSummary ? `\nEXISTING AI ANALYSIS SUMMARY:\n${existingSummary}` : "\nNo existing analysis available."}
 ${existingScore !== null ? `CURRENT SCORE: ${existingScore}/100` : ""}
+${contextBlock}
 
 UPLOADED DOCUMENT:
 ${trimmed}
@@ -273,7 +332,7 @@ Classify this document (bank statement, meeting notes, or different person) and 
 
   try {
     const response = await createMessageWithFallback({
-      max_tokens: 8192,
+      max_tokens: 16384,
       system: DETECTION_SYSTEM_PROMPT,
       tools: [NOTES_TOOL_SCHEMA, BANK_STATEMENT_TOOL_SCHEMA, NEW_LEAD_TOOL_SCHEMA],
       tool_choice: { type: "any" },

@@ -164,26 +164,33 @@ export async function POST(request: NextRequest) {
           type: t.type as Transaction["type"],
         }));
 
-        // Re-run full AI analysis with actual transaction data
-        const newAnalysis = await analyzeClient(client, allTransactions);
+        // Re-run full AI analysis with actual transaction data.
+        // Wrapped in try-catch so the lead creation succeeds even if
+        // the AI re-analysis call fails (transactions are already saved).
+        let finalScore = analysis.score;
+        try {
+          const newAnalysis = await analyzeClient(client, allTransactions);
 
-        // Update analysis record with proper scores
-        db.prepare(`
-          UPDATE analyses SET score = ?, confidence = ?, signals = ?, summary = ?,
-            detailed_reasoning = ?, recommended_actions = ?, human_decision_required = ?,
-            analyzed_at = ?, model_used = ?
-          WHERE client_id = ?
-        `).run(
-          newAnalysis.score, newAnalysis.confidence, JSON.stringify(newAnalysis.signals),
-          newAnalysis.summary, newAnalysis.detailedReasoning,
-          JSON.stringify(newAnalysis.recommendedActions), newAnalysis.humanDecisionRequired,
-          newAnalysis.analyzedAt, newAnalysis.modelUsed, newClientId
-        );
+          db.prepare(`
+            UPDATE analyses SET score = ?, confidence = ?, signals = ?, summary = ?,
+              detailed_reasoning = ?, recommended_actions = ?, human_decision_required = ?,
+              analyzed_at = ?, model_used = ?
+            WHERE client_id = ?
+          `).run(
+            newAnalysis.score, newAnalysis.confidence, JSON.stringify(newAnalysis.signals),
+            newAnalysis.summary, newAnalysis.detailedReasoning,
+            JSON.stringify(newAnalysis.recommendedActions), newAnalysis.humanDecisionRequired,
+            newAnalysis.analyzedAt, newAnalysis.modelUsed, newClientId
+          );
+          finalScore = newAnalysis.score;
+        } catch (reanalysisErr) {
+          console.error("[confirm-lead] Re-analysis failed for new lead (transactions saved):", reanalysisErr);
+        }
 
         return NextResponse.json({
           clientId: newClientId,
           clientName: `${firstName} ${lastName}`,
-          score: newAnalysis.score,
+          score: finalScore,
         });
       }
 
@@ -285,25 +292,30 @@ export async function POST(request: NextRequest) {
           type: t.type as Transaction["type"],
         }));
 
-        // Re-run full AI analysis
-        const newAnalysis = await analyzeClient(client, allTransactions);
+        // Re-run full AI analysis — wrapped in try-catch so the transaction
+        // insert is never lost even if re-analysis fails.
+        try {
+          const newAnalysis = await analyzeClient(client, allTransactions);
 
-        db.prepare(`
-          INSERT INTO analyses (id, client_id, score, confidence, signals, summary,
-            detailed_reasoning, recommended_actions, human_decision_required, analyzed_at, model_used)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-          ON CONFLICT(client_id) DO UPDATE SET
-            score = excluded.score, confidence = excluded.confidence, signals = excluded.signals,
-            summary = excluded.summary, detailed_reasoning = excluded.detailed_reasoning,
-            recommended_actions = excluded.recommended_actions,
-            human_decision_required = excluded.human_decision_required,
-            analyzed_at = excluded.analyzed_at, model_used = excluded.model_used
-        `).run(
-          newAnalysis.id, newAnalysis.clientId, newAnalysis.score, newAnalysis.confidence,
-          JSON.stringify(newAnalysis.signals), newAnalysis.summary, newAnalysis.detailedReasoning,
-          JSON.stringify(newAnalysis.recommendedActions), newAnalysis.humanDecisionRequired,
-          newAnalysis.analyzedAt, newAnalysis.modelUsed
-        );
+          db.prepare(`
+            INSERT INTO analyses (id, client_id, score, confidence, signals, summary,
+              detailed_reasoning, recommended_actions, human_decision_required, analyzed_at, model_used)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(client_id) DO UPDATE SET
+              score = excluded.score, confidence = excluded.confidence, signals = excluded.signals,
+              summary = excluded.summary, detailed_reasoning = excluded.detailed_reasoning,
+              recommended_actions = excluded.recommended_actions,
+              human_decision_required = excluded.human_decision_required,
+              analyzed_at = excluded.analyzed_at, model_used = excluded.model_used
+          `).run(
+            newAnalysis.id, newAnalysis.clientId, newAnalysis.score, newAnalysis.confidence,
+            JSON.stringify(newAnalysis.signals), newAnalysis.summary, newAnalysis.detailedReasoning,
+            JSON.stringify(newAnalysis.recommendedActions), newAnalysis.humanDecisionRequired,
+            newAnalysis.analyzedAt, newAnalysis.modelUsed
+          );
+        } catch (reanalysisErr) {
+          console.error("[confirm-lead] Re-analysis failed for attach_to_existing (transactions saved):", reanalysisErr);
+        }
 
         return NextResponse.json({
           clientId: existingClientId,
