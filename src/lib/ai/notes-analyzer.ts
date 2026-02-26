@@ -70,7 +70,7 @@ const NOTES_TOOL_SCHEMA = {
   },
 };
 
-const BANK_STATEMENT_TOOL_SCHEMA = {
+export const BANK_STATEMENT_TOOL_SCHEMA = {
   name: "submit_bank_statement_data",
   description:
     "Submit structured data extracted from a bank or financial institution statement. Use this when the uploaded document contains tabular transaction data with dates, descriptions, and amounts.",
@@ -202,19 +202,22 @@ A) BANK STATEMENT — if the document contains:
    - Tabular transaction data (rows with dates, descriptions, amounts)
    - Account summary, opening/closing balance, statement period
    - Financial institution branding (TD, RBC, BMO, CIBC, Scotiabank, etc.)
-   → Check if the account holder name matches the current client:
-     - If it MATCHES or closely matches → use submit_bank_statement_data
-     - If it is a clearly DIFFERENT person → use submit_lead_from_notes
+   → ALWAYS use submit_bank_statement_data to extract the full transaction data.
+     Do this regardless of whether the account holder name matches the current client.
+     The system will handle name matching separately.
 
-B) MEETING NOTES — if the document is narrative text with:
+B) MEETING NOTES about the current client — if the document is narrative text with:
    - Advisor observations, client conversation notes, call summaries
    - Qualitative information about goals, concerns, life events
-   → Use submit_notes_analysis (for the current client)
+   - The document is clearly about the SAME person as the current client
+   → Use submit_notes_analysis
 
-C) DIFFERENT PERSON — if the document is about a clearly different person
-   (regardless of document type) → use submit_lead_from_notes
+C) MEETING NOTES about a DIFFERENT PERSON — if the document is narrative text
+   (NOT a bank statement) about a clearly different person than the current client
+   → Use submit_lead_from_notes
 
-When in doubt, default to submit_notes_analysis.
+When in doubt between notes analysis and lead creation, default to submit_notes_analysis.
+When in doubt whether a document is a bank statement, check for tabular transaction rows — if present, use submit_bank_statement_data.
 
 STEP 2 — PROCESS WITH THE CHOSEN TOOL:
 

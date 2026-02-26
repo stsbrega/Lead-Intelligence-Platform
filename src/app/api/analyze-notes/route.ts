@@ -139,107 +139,170 @@ export async function POST(request: NextRequest) {
     }
 
     if (detection.type === "bank_statement") {
-      // ── Bank statement: extract transactions + re-analyze ──
+      // ── Bank statement detected ──
       const bankData = detection.data;
-      const now = new Date().toISOString();
 
-      // Deduplicate against existing transactions
-      const existingKeys = new Set(
-        (db.prepare(
-          "SELECT date || '|' || amount || '|' || description AS key FROM transactions WHERE client_id = ?"
-        ).all(clientId) as { key: string }[]).map((r) => r.key)
-      );
+      // Determine whether the account holder matches the current client
+      const holderFirst = bankData.accountHolder.firstName.trim().toLowerCase();
+      const holderLast = bankData.accountHolder.lastName.trim().toLowerCase();
+      const clientFirst = clientRow.first_name.trim().toLowerCase();
+      const clientLast = clientRow.last_name.trim().toLowerCase();
+      const nameMatches = holderFirst === clientFirst && holderLast === clientLast;
 
-      const newTxns = bankData.transactions.filter((txn) => {
-        const key = `${txn.date}|${txn.amount}|${txn.description}`;
-        return !existingKeys.has(key);
-      });
+      if (nameMatches) {
+        // ── Same person: insert transactions + re-analyze ──
+        const now = new Date().toISOString();
 
-      // Insert new transactions
-      const insertTxn = db.prepare(`
-        INSERT INTO transactions (id, client_id, date, amount, description, category, merchant_name, is_recurring, type)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `);
-      const insertMany = db.transaction((txns: typeof newTxns) => {
-        for (let i = 0; i < txns.length; i++) {
-          const t = txns[i];
-          insertTxn.run(
-            `txn_${clientId}_stmt_${Date.now()}_${i}`,
-            clientId,
-            t.date, t.amount, t.description, t.category,
-            t.merchantName, t.isRecurring ? 1 : 0, t.type
-          );
-        }
-      });
-      insertMany(newTxns);
+        // Deduplicate against existing transactions
+        const existingKeys = new Set(
+          (db.prepare(
+            "SELECT date || '|' || amount || '|' || description AS key FROM transactions WHERE client_id = ?"
+          ).all(clientId) as { key: string }[]).map((r) => r.key)
+        );
 
-      // Update client balance
-      db.prepare("UPDATE clients SET total_balance = ? WHERE id = ?")
-        .run(bankData.summary.closingBalance, clientId);
+        const newTxns = bankData.transactions.filter((txn) => {
+          const key = `${txn.date}|${txn.amount}|${txn.description}`;
+          return !existingKeys.has(key);
+        });
 
-      // Reload full client + transactions for re-analysis
-      const cRow = db.prepare("SELECT * FROM clients WHERE id = ?").get(clientId) as Record<string, unknown>;
-      const client: Client = {
-        id: cRow.id as string,
-        firstName: cRow.first_name as string,
-        lastName: cRow.last_name as string,
-        email: (cRow.email as string) || "",
-        age: cRow.age as number,
-        city: cRow.city as string,
-        province: cRow.province as string,
-        occupation: cRow.occupation as string,
-        annualIncome: cRow.annual_income as number,
-        accountOpenDate: cRow.account_open_date as string,
-        totalBalance: cRow.total_balance as number,
-        directDepositActive: Boolean(cRow.direct_deposit_active),
+        // Insert new transactions
+        const insertTxn = db.prepare(`
+          INSERT INTO transactions (id, client_id, date, amount, description, category, merchant_name, is_recurring, type)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        const insertMany = db.transaction((txns: typeof newTxns) => {
+          for (let i = 0; i < txns.length; i++) {
+            const t = txns[i];
+            insertTxn.run(
+              `txn_${clientId}_stmt_${Date.now()}_${i}`,
+              clientId,
+              t.date, t.amount, t.description, t.category,
+              t.merchantName, t.isRecurring ? 1 : 0, t.type
+            );
+          }
+        });
+        insertMany(newTxns);
+
+        // Update client balance
+        db.prepare("UPDATE clients SET total_balance = ? WHERE id = ?")
+          .run(bankData.summary.closingBalance, clientId);
+
+        // Reload full client + transactions for re-analysis
+        const cRow = db.prepare("SELECT * FROM clients WHERE id = ?").get(clientId) as Record<string, unknown>;
+        const client: Client = {
+          id: cRow.id as string,
+          firstName: cRow.first_name as string,
+          lastName: cRow.last_name as string,
+          email: (cRow.email as string) || "",
+          age: cRow.age as number,
+          city: cRow.city as string,
+          province: cRow.province as string,
+          occupation: cRow.occupation as string,
+          annualIncome: cRow.annual_income as number,
+          accountOpenDate: cRow.account_open_date as string,
+          totalBalance: cRow.total_balance as number,
+          directDepositActive: Boolean(cRow.direct_deposit_active),
+        };
+
+        const allTxnRows = db.prepare(
+          "SELECT * FROM transactions WHERE client_id = ? ORDER BY date DESC"
+        ).all(clientId) as Record<string, unknown>[];
+
+        const allTransactions: Transaction[] = allTxnRows.map((t) => ({
+          id: t.id as string,
+          clientId: t.client_id as string,
+          date: t.date as string,
+          amount: t.amount as number,
+          description: (t.description as string) || "",
+          category: t.category as Transaction["category"],
+          merchantName: (t.merchant_name as string) || "",
+          isRecurring: Boolean(t.is_recurring),
+          type: t.type as Transaction["type"],
+        }));
+
+        // Re-run full AI analysis (signal detection + Claude synthesis)
+        const newAnalysis = await analyzeClient(client, allTransactions);
+
+        // Upsert analysis
+        db.prepare(`
+          INSERT INTO analyses (id, client_id, score, confidence, signals, summary,
+            detailed_reasoning, recommended_actions, human_decision_required, analyzed_at, model_used)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(client_id) DO UPDATE SET
+            score = excluded.score, confidence = excluded.confidence, signals = excluded.signals,
+            summary = excluded.summary, detailed_reasoning = excluded.detailed_reasoning,
+            recommended_actions = excluded.recommended_actions,
+            human_decision_required = excluded.human_decision_required,
+            analyzed_at = excluded.analyzed_at, model_used = excluded.model_used
+        `).run(
+          newAnalysis.id, newAnalysis.clientId, newAnalysis.score, newAnalysis.confidence,
+          JSON.stringify(newAnalysis.signals), newAnalysis.summary, newAnalysis.detailedReasoning,
+          JSON.stringify(newAnalysis.recommendedActions), newAnalysis.humanDecisionRequired,
+          newAnalysis.analyzedAt, newAnalysis.modelUsed
+        );
+
+        return NextResponse.json({
+          bankStatementProcessed: true,
+          transactionsAdded: newTxns.length,
+          newScore: newAnalysis.score,
+          keyObservations: bankData.summary.keyObservations,
+        });
+      }
+
+      // ── Different person's bank statement: defer with bank data ──
+      // Build a client profile from the account holder info.
+      // The actual analysis (with transactions) will run in /api/confirm-lead.
+      const clientProfile = {
+        firstName: bankData.accountHolder.firstName,
+        lastName: bankData.accountHolder.lastName,
+        occupation: "Unknown",
+        city: "Unknown",
+        province: "ON",
+        estimatedAnnualIncome: 0,
+        estimatedAge: 0,
+      };
+      const placeholderAnalysis = {
+        score: 50,
+        confidence: "low",
+        signals: [] as unknown[],
+        summary: bankData.summary.keyObservations,
+        detailedReasoning: `Bank statement from ${bankData.accountHolder.institutionName || "financial institution"} covering ${bankData.statementPeriod.startDate} to ${bankData.statementPeriod.endDate}. ${bankData.transactions.length} transactions extracted.`,
+        recommendedActions: [{
+          priority: 1,
+          action: "Review extracted bank statement data",
+          rationale: "Transaction data has been extracted and will be analyzed upon lead creation.",
+          estimatedImpact: "Enables transaction-based lead scoring",
+          requiresHumanApproval: false,
+        }],
+        humanDecisionRequired: "Review the extracted bank statement data and verify the client information.",
       };
 
-      const allTxnRows = db.prepare(
-        "SELECT * FROM transactions WHERE client_id = ? ORDER BY date DESC"
-      ).all(clientId) as Record<string, unknown>[];
-
-      const allTransactions: Transaction[] = allTxnRows.map((t) => ({
-        id: t.id as string,
-        clientId: t.client_id as string,
-        date: t.date as string,
-        amount: t.amount as number,
-        description: (t.description as string) || "",
-        category: t.category as Transaction["category"],
-        merchantName: (t.merchant_name as string) || "",
-        isRecurring: Boolean(t.is_recurring),
-        type: t.type as Transaction["type"],
-      }));
-
-      // Re-run full AI analysis (signal detection + Claude synthesis)
-      const newAnalysis = await analyzeClient(client, allTransactions);
-
-      // Upsert analysis
-      db.prepare(`
-        INSERT INTO analyses (id, client_id, score, confidence, signals, summary,
-          detailed_reasoning, recommended_actions, human_decision_required, analyzed_at, model_used)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(client_id) DO UPDATE SET
-          score = excluded.score, confidence = excluded.confidence, signals = excluded.signals,
-          summary = excluded.summary, detailed_reasoning = excluded.detailed_reasoning,
-          recommended_actions = excluded.recommended_actions,
-          human_decision_required = excluded.human_decision_required,
-          analyzed_at = excluded.analyzed_at, model_used = excluded.model_used
-      `).run(
-        newAnalysis.id, newAnalysis.clientId, newAnalysis.score, newAnalysis.confidence,
-        JSON.stringify(newAnalysis.signals), newAnalysis.summary, newAnalysis.detailedReasoning,
-        JSON.stringify(newAnalysis.recommendedActions), newAnalysis.humanDecisionRequired,
-        newAnalysis.analyzedAt, newAnalysis.modelUsed
+      const duplicates = findPotentialDuplicates(
+        clientProfile.firstName,
+        clientProfile.lastName,
+        {
+          city: clientProfile.city,
+          province: clientProfile.province,
+          occupation: clientProfile.occupation,
+          age: clientProfile.estimatedAge,
+        },
+        clientId
       );
 
       return NextResponse.json({
-        bankStatementProcessed: true,
-        transactionsAdded: newTxns.length,
-        newScore: newAnalysis.score,
-        keyObservations: bankData.summary.keyObservations,
+        requiresConfirmation: true,
+        pendingLead: {
+          clientProfile,
+          analysis: placeholderAnalysis,
+          modelUsed: detection.modelUsed,
+          notesText,
+          bankData,
+        },
+        duplicates,
       });
     }
 
-    // ── Different person: check for duplicates before creating ──
+    // ── Different person (meeting notes): check for duplicates before creating ──
     const { clientProfile, analysis } = detection.data;
     const { modelUsed } = detection;
 

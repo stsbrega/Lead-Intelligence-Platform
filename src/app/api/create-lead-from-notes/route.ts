@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createLeadFromNotes } from "@/lib/ai/lead-from-notes";
+import { createLeadFromNotesWithDetection } from "@/lib/ai/lead-from-notes";
 import { extractText, isSupportedFile } from "@/lib/file-parser";
 import { findPotentialDuplicates } from "@/lib/data/duplicate-check";
 
@@ -52,8 +52,9 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = await createLeadFromNotes(notesText);
-    const { clientProfile, analysis, modelUsed } = result;
+    const result = await createLeadFromNotesWithDetection(notesText);
+    const { leadData, modelUsed } = result;
+    const { clientProfile, analysis } = leadData;
 
     // Check for duplicates before creating
     const duplicates = findPotentialDuplicates(
@@ -67,9 +68,18 @@ export async function POST(request: NextRequest) {
       }
     );
 
+    // Include bank statement data in the pending lead when detected,
+    // so /api/confirm-lead can insert the transactions after confirmation.
+    const pendingLead: Record<string, unknown> = {
+      clientProfile, analysis, modelUsed, notesText,
+    };
+    if (result.type === "bank_statement") {
+      pendingLead.bankData = result.bankData;
+    }
+
     return NextResponse.json({
       requiresConfirmation: true,
-      pendingLead: { clientProfile, analysis, modelUsed, notesText },
+      pendingLead,
       duplicates,
     });
   } catch (error) {

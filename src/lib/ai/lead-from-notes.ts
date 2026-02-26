@@ -1,5 +1,6 @@
-import { createMessageWithFallbackAndValidation } from "./client";
-import { LeadFromNotesSchema, type LeadFromNotesResult } from "./schemas";
+import { createMessageWithFallback, createMessageWithFallbackAndValidation } from "./client";
+import { LeadFromNotesSchema, BankStatementSchema, type LeadFromNotesResult, type BankStatementResult } from "./schemas";
+import { BANK_STATEMENT_TOOL_SCHEMA } from "./notes-analyzer";
 
 const SYSTEM_PROMPT = `You are an AI lead analysis engine for Wealthsimple's financial advisory team. You are analyzing raw advisor meeting notes from a sales call or client conversation.
 
@@ -107,8 +108,8 @@ export const NEW_LEAD_TOOL_SCHEMA = {
   },
 };
 
-/** Cap document text to avoid token-budget issues with large PDFs. */
-const MAX_INPUT_CHARS = 20_000;
+/** Cap document text — raised to 30k for bank statements (tabular, token-efficient). */
+const MAX_INPUT_CHARS = 30_000;
 
 function truncateInput(text: string): string {
   if (text.length <= MAX_INPUT_CHARS) return text;
@@ -151,4 +152,134 @@ Extract the client profile and analyze this as a potential lead opportunity. The
   result.analysis.score = Math.max(0, Math.min(100, result.analysis.score));
 
   return { ...result, modelUsed };
+}
+
+// ── Detection-aware new lead creation ─────────────────────────────────────────
+
+const DETECTION_SYSTEM_PROMPT = `You are an AI lead analysis engine for Wealthsimple's financial advisory team. An advisor has uploaded a document to create a new lead.
+
+STEP 1 — CLASSIFY THE DOCUMENT:
+
+A) BANK STATEMENT — if the document contains:
+   - Tabular transaction data (rows with dates, descriptions, amounts)
+   - Account summary, opening/closing balance, statement period
+   - Financial institution branding (TD, RBC, BMO, CIBC, Scotiabank, etc.)
+   → Use submit_bank_statement_data
+
+B) MEETING NOTES / OTHER — any other type of document (advisor notes, call summaries, etc.)
+   → Use submit_lead_from_notes
+
+STEP 2 — PROCESS WITH THE CHOSEN TOOL:
+
+IF BANK STATEMENT (submit_bank_statement_data):
+- Extract the institution name from the statement header or branding
+- Extract the account number exactly as shown (usually partially masked)
+- Extract ALL transactions with proper dates (YYYY-MM-DD), amounts (NEGATIVE for withdrawals, POSITIVE for deposits), categories, and types
+- Categorize each transaction: use "investment_competitor" for transfers to competing brokerages (RBC Direct Investing, TD Waterhouse, BMO InvestorLine, etc.), "rrsp_contribution"/"tfsa_contribution" for labeled registered accounts, "mortgage_payment" for mortgage/MTG payments, "salary_deposit" for payroll
+- Identify recurring transactions (same amount, regular interval)
+- Provide closing balance, total inflows/outflows, and key observations
+
+IF MEETING NOTES (submit_lead_from_notes):
+- Extract client profile (name, occupation, city, province, estimated income, estimated age)
+- Analyze as a lead opportunity and score 0-100
+- Look for: competitor assets, life events, consolidation intent, dissatisfaction, large balances
+
+CONSTRAINTS:
+- Do NOT recommend specific financial products
+- Do NOT make suitability determinations
+- Focus on factual observations from the document
+- Be concise and actionable
+
+For missing client fields, use sensible defaults:
+- Province: default "ON", Age: default 0, Income: default 0, City: default "Unknown"
+
+CRITICAL JSON FORMATTING: All numeric fields MUST be actual JSON numbers (e.g., 85 not "85"). All boolean fields MUST be actual JSON booleans (true/false, not "true"/"false").`;
+
+/**
+ * Result types from detection-aware new lead creation.
+ * "notes" = standard meeting notes → client profile + analysis.
+ * "bank_statement" = bank statement → client profile + analysis + transaction data.
+ */
+export type NewLeadDetectionResult =
+  | { type: "notes"; leadData: LeadFromNotesResult; modelUsed: string }
+  | { type: "bank_statement"; leadData: LeadFromNotesResult; bankData: BankStatementResult; modelUsed: string };
+
+/**
+ * Create a new lead from an uploaded document, auto-detecting whether it's
+ * a bank statement or meeting notes. Bank statements return extracted
+ * transaction data alongside the client profile for later insertion.
+ */
+export async function createLeadFromNotesWithDetection(notesText: string): Promise<NewLeadDetectionResult> {
+  const trimmed = truncateInput(notesText);
+
+  const userPrompt = `UPLOADED DOCUMENT:
+${trimmed}
+
+Classify this document and process it with the appropriate tool. Extract all available information.`;
+
+  try {
+    const response = await createMessageWithFallback({
+      max_tokens: 8192,
+      system: DETECTION_SYSTEM_PROMPT,
+      tools: [NEW_LEAD_TOOL_SCHEMA, BANK_STATEMENT_TOOL_SCHEMA],
+      tool_choice: { type: "any" },
+      messages: [{ role: "user", content: userPrompt }],
+    });
+
+    const toolUse = response.content.find((b) => b.type === "tool_use");
+    if (!toolUse || toolUse.type !== "tool_use") {
+      throw new Error("No tool_use block in detection response");
+    }
+
+    if (toolUse.name === "submit_lead_from_notes") {
+      const parsed = LeadFromNotesSchema.safeParse(toolUse.input);
+      const data = (parsed.success ? parsed.data : toolUse.input) as LeadFromNotesResult;
+      data.analysis.score = Math.max(0, Math.min(100, data.analysis.score));
+      return { type: "notes", leadData: data, modelUsed: response.model };
+    }
+
+    if (toolUse.name === "submit_bank_statement_data") {
+      const parsed = BankStatementSchema.safeParse(toolUse.input);
+      const bankData = (parsed.success ? parsed.data : toolUse.input) as BankStatementResult;
+
+      // Build a client profile from the account holder info.
+      // A proper AI analysis will be generated after the transactions are
+      // inserted (in /api/confirm-lead), so this is a placeholder.
+      const leadData: LeadFromNotesResult = {
+        clientProfile: {
+          firstName: bankData.accountHolder.firstName,
+          lastName: bankData.accountHolder.lastName,
+          occupation: "Unknown",
+          city: "Unknown",
+          province: "ON",
+          estimatedAnnualIncome: 0,
+          estimatedAge: 0,
+        },
+        analysis: {
+          score: 50,
+          confidence: "low" as const,
+          signals: [],
+          summary: bankData.summary.keyObservations,
+          detailedReasoning: `Bank statement from ${bankData.accountHolder.institutionName || "financial institution"} covering ${bankData.statementPeriod.startDate} to ${bankData.statementPeriod.endDate}. ${bankData.transactions.length} transactions extracted. Closing balance: $${bankData.summary.closingBalance.toLocaleString()}.`,
+          recommendedActions: [{
+            priority: 1,
+            action: "Review extracted bank statement data and transaction history",
+            rationale: "AI has extracted transaction data from the bank statement. Review for accuracy and completeness.",
+            estimatedImpact: "Enables transaction-based lead scoring and signal detection",
+            requiresHumanApproval: false,
+          }],
+          humanDecisionRequired: "Review the extracted bank statement data and verify the client information is accurate.",
+        },
+      };
+
+      return { type: "bank_statement", leadData, bankData, modelUsed: response.model };
+    }
+
+    throw new Error(`Unexpected tool name: ${toolUse.name}`);
+  } catch (err) {
+    // If detection fails, fall back to standard single-tool pipeline (Groq-compatible)
+    console.warn("[AI] New lead detection failed, falling back to single-tool:", err);
+    const result = await createLeadFromNotes(notesText);
+    return { type: "notes", leadData: result, modelUsed: result.modelUsed };
+  }
 }
