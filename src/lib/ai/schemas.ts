@@ -127,6 +127,8 @@ export const BankStatementSchema = z.object({
   accountHolder: z.object({
     firstName: z.string(),
     lastName: z.string(),
+    institutionName: z.string().optional().default("Unknown"),
+    accountNumber: z.string().optional().default(""),
   }),
   statementPeriod: z.object({
     startDate: z.string(),

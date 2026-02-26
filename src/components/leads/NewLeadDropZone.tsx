@@ -3,6 +3,9 @@
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useLeadCreation } from "@/context/LeadCreationContext";
+import DuplicateCheckModal from "./DuplicateCheckModal";
+import type { PendingLeadData } from "./DuplicateCheckModal";
+import type { DuplicateCandidate } from "@/lib/data/duplicate-check";
 
 type Status = "idle" | "dragging" | "reading" | "analyzing" | "success" | "error";
 
@@ -22,6 +25,9 @@ export default function NewLeadDropZone() {
   const [successData, setSuccessData] = useState<SuccessData | null>(null);
   const [createdLeads, setCreatedLeads] = useState<SuccessData[]>([]);
   const [fileProgress, setFileProgress] = useState({ current: 0, total: 0 });
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [pendingLeadData, setPendingLeadData] = useState<PendingLeadData | null>(null);
+  const [duplicateCandidates, setDuplicateCandidates] = useState<DuplicateCandidate[]>([]);
   const dragCounter = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -56,8 +62,20 @@ export default function NewLeadDropZone() {
       throw new Error(data.error || "Lead creation failed");
     }
 
-    return await res.json();
-  }, []);
+    const data = await res.json();
+
+    if (data.requiresConfirmation) {
+      setPendingLeadData(data.pendingLead);
+      setDuplicateCandidates(data.duplicates || []);
+      setShowDuplicateModal(true);
+      setStatus("idle");
+      leadCreation.reset();
+      // Return a sentinel to signal the batch to stop processing
+      throw new Error("__CONFIRMATION_NEEDED__");
+    }
+
+    return data;
+  }, [leadCreation]);
 
   /** Process multiple files sequentially */
   const processFiles = useCallback(async (files: File[]) => {
@@ -95,6 +113,8 @@ export default function NewLeadDropZone() {
         results.push(data);
         setCreatedLeads([...results]);
       } catch (err) {
+        // Confirmation needed — modal is already shown, stop batch
+        if (err instanceof Error && err.message === "__CONFIRMATION_NEEDED__") return;
         setStatus("error");
         const msg = `${file.name}: ${err instanceof Error ? err.message : "Lead creation failed"}`;
         setErrorMessage(msg);
@@ -143,11 +163,56 @@ export default function NewLeadDropZone() {
     e.target.value = "";
   };
 
+  const handleConfirmCreate = useCallback(async () => {
+    if (!pendingLeadData) return;
+    const res = await fetch("/api/confirm-lead", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "create_new",
+        pendingLead: pendingLeadData,
+        previousDuplicateIds: duplicateCandidates.map((d) => d.clientId),
+      }),
+    });
+    const data = await res.json();
+
+    if (data.requiresConfirmation) {
+      setDuplicateCandidates(data.duplicates || []);
+      return;
+    }
+
+    setShowDuplicateModal(false);
+    setSuccessData({ clientId: data.clientId, clientName: data.clientName, score: data.score });
+    setStatus("success");
+    leadCreation.setSuccess(data.clientId, data.clientName, data.score);
+    setTimeout(() => router.push(`/leads/${data.clientId}`), 2000);
+  }, [pendingLeadData, duplicateCandidates, router, leadCreation]);
+
+  const handleConfirmAttach = useCallback(async (existingClientId: string) => {
+    if (!pendingLeadData) return;
+    const res = await fetch("/api/confirm-lead", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "attach_to_existing",
+        pendingLead: pendingLeadData,
+        existingClientId,
+      }),
+    });
+    const data = await res.json();
+
+    setShowDuplicateModal(false);
+    setStatus("success");
+    leadCreation.setSuccess(data.clientId, data.clientName, 0);
+    setTimeout(() => router.push(`/leads/${existingClientId}`), 2000);
+  }, [pendingLeadData, router, leadCreation]);
+
   const progressLabel = fileProgress.total > 1
     ? ` (${fileProgress.current} of ${fileProgress.total})`
     : "";
 
   return (
+    <>
     <div
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
@@ -281,6 +346,19 @@ export default function NewLeadDropZone() {
         </>
       )}
     </div>
+
+    {/* Duplicate Check Modal */}
+    {pendingLeadData && (
+      <DuplicateCheckModal
+        open={showDuplicateModal}
+        onClose={() => setShowDuplicateModal(false)}
+        pendingLead={pendingLeadData}
+        duplicates={duplicateCandidates}
+        onConfirmCreate={handleConfirmCreate}
+        onConfirmAttach={handleConfirmAttach}
+      />
+    )}
+    </>
   );
 }
 

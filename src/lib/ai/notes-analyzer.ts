@@ -80,10 +80,18 @@ const BANK_STATEMENT_TOOL_SCHEMA = {
     properties: {
       accountHolder: {
         type: "object" as const,
-        required: ["firstName", "lastName"],
+        required: ["firstName", "lastName", "institutionName", "accountNumber"],
         properties: {
           firstName: { type: "string" as const },
           lastName: { type: "string" as const },
+          institutionName: {
+            type: "string" as const,
+            description: "Name of the financial institution (e.g., 'TD Canada Trust', 'RBC Royal Bank', 'BMO'). Extract from statement header/branding. Use 'Unknown' if not identifiable.",
+          },
+          accountNumber: {
+            type: "string" as const,
+            description: "Account number as shown on statement, typically partially masked (e.g., '****-****-8842'). Include only what is visible. Use empty string if not found.",
+          },
         },
       },
       statementPeriod: {
@@ -211,6 +219,8 @@ When in doubt, default to submit_notes_analysis.
 STEP 2 — PROCESS WITH THE CHOSEN TOOL:
 
 IF BANK STATEMENT (submit_bank_statement_data):
+- Extract the institution name from the statement header or branding (e.g., "TD Canada Trust", "RBC Royal Bank")
+- Extract the account number exactly as shown on the statement (usually partially masked, e.g., "****-****-8842")
 - Extract ALL transactions with proper dates (YYYY-MM-DD), amounts (NEGATIVE for withdrawals, POSITIVE for deposits), categories, and types
 - Categorize each transaction: use "investment_competitor" for transfers to competing brokerages (RBC Direct Investing, TD Waterhouse, BMO InvestorLine, etc.), "rrsp_contribution"/"tfsa_contribution" for labeled registered accounts, "mortgage_payment" for mortgage/MTG payments, "salary_deposit" for payroll
 - Identify recurring transactions (same amount, regular interval)

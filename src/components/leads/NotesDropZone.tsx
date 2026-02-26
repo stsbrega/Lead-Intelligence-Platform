@@ -3,6 +3,9 @@
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { NoteAnalysis } from "@/types";
+import DuplicateCheckModal from "./DuplicateCheckModal";
+import type { PendingLeadData } from "./DuplicateCheckModal";
+import type { DuplicateCandidate } from "@/lib/data/duplicate-check";
 
 interface RedirectData {
   clientId: string;
@@ -36,6 +39,9 @@ export default function NotesDropZone({ clientId, clientName, existingAnalyses }
   const [redirectData, setRedirectData] = useState<RedirectData | null>(null);
   const [bankResult, setBankResult] = useState<BankResult | null>(null);
   const [fileProgress, setFileProgress] = useState({ current: 0, total: 0 });
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [pendingLeadData, setPendingLeadData] = useState<PendingLeadData | null>(null);
+  const [duplicateCandidates, setDuplicateCandidates] = useState<DuplicateCandidate[]>([]);
   const dragCounter = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -76,6 +82,14 @@ export default function NotesDropZone({ clientId, clientName, existingAnalyses }
     }
 
     const data = await res.json();
+
+    if (data.requiresConfirmation) {
+      setPendingLeadData(data.pendingLead);
+      setDuplicateCandidates(data.duplicates || []);
+      setShowDuplicateModal(true);
+      setStatus("idle");
+      return true;
+    }
 
     if (data.redirect) {
       setRedirectData({ clientId: data.clientId, clientName: data.clientName, score: data.score });
@@ -176,6 +190,50 @@ export default function NotesDropZone({ clientId, clientName, existingAnalyses }
     if (files.length > 0) processFiles(files);
     e.target.value = "";
   };
+
+  const handleConfirmCreate = useCallback(async () => {
+    if (!pendingLeadData) return;
+    const res = await fetch("/api/confirm-lead", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "create_new",
+        pendingLead: pendingLeadData,
+        previousDuplicateIds: duplicateCandidates.map((d) => d.clientId),
+      }),
+    });
+    const data = await res.json();
+
+    if (data.requiresConfirmation) {
+      // Race-condition: new duplicates found — re-show modal
+      setDuplicateCandidates(data.duplicates || []);
+      return;
+    }
+
+    setShowDuplicateModal(false);
+    setRedirectData({ clientId: data.clientId, clientName: data.clientName, score: data.score });
+    setStatus("success");
+    setTimeout(() => router.push(`/leads/${data.clientId}`), 2500);
+  }, [pendingLeadData, duplicateCandidates, router]);
+
+  const handleConfirmAttach = useCallback(async (existingClientId: string) => {
+    if (!pendingLeadData) return;
+    const res = await fetch("/api/confirm-lead", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "attach_to_existing",
+        pendingLead: pendingLeadData,
+        existingClientId,
+      }),
+    });
+    await res.json();
+
+    setShowDuplicateModal(false);
+    setStatus("success");
+    router.refresh();
+    setTimeout(() => setStatus("idle"), 4000);
+  }, [pendingLeadData, router]);
 
   const progressLabel = fileProgress.total > 1
     ? ` (${fileProgress.current} of ${fileProgress.total})`
@@ -356,6 +414,18 @@ export default function NotesDropZone({ clientId, clientName, existingAnalyses }
           )}
         </div>
       ))}
+
+      {/* Duplicate Check Modal */}
+      {pendingLeadData && (
+        <DuplicateCheckModal
+          open={showDuplicateModal}
+          onClose={() => setShowDuplicateModal(false)}
+          pendingLead={pendingLeadData}
+          duplicates={duplicateCandidates}
+          onConfirmCreate={handleConfirmCreate}
+          onConfirmAttach={handleConfirmAttach}
+        />
+      )}
     </div>
   );
 }

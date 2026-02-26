@@ -79,6 +79,7 @@ CREATE TABLE IF NOT EXISTS behavioral_engagement (
   FOREIGN KEY (client_id) REFERENCES clients(id)
 );
 
+CREATE INDEX IF NOT EXISTS idx_clients_name ON clients(first_name COLLATE NOCASE, last_name COLLATE NOCASE);
 CREATE INDEX IF NOT EXISTS idx_transactions_client ON transactions(client_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category);
 CREATE INDEX IF NOT EXISTS idx_analyses_score ON analyses(score DESC);

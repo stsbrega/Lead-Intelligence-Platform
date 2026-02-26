@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import db from "@/lib/data/db";
 import { createLeadFromNotes } from "@/lib/ai/lead-from-notes";
 import { extractText, isSupportedFile } from "@/lib/file-parser";
+import { findPotentialDuplicates } from "@/lib/data/duplicate-check";
 
 export async function POST(request: NextRequest) {
   let notesText: string;
@@ -53,60 +53,24 @@ export async function POST(request: NextRequest) {
 
   try {
     const result = await createLeadFromNotes(notesText);
-
-    const clientId = `c_notes_${Date.now()}`;
-    const now = new Date().toISOString();
-    const analysisId = `analysis_${clientId}`;
     const { clientProfile, analysis, modelUsed } = result;
 
-    // Insert client record
-    db.prepare(`
-      INSERT INTO clients (id, first_name, last_name, email, age, city, province, occupation, annual_income, account_open_date, total_balance, direct_deposit_active, lead_source)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      clientId,
+    // Check for duplicates before creating
+    const duplicates = findPotentialDuplicates(
       clientProfile.firstName,
       clientProfile.lastName,
-      "",
-      clientProfile.estimatedAge,
-      clientProfile.city,
-      clientProfile.province,
-      clientProfile.occupation,
-      clientProfile.estimatedAnnualIncome,
-      now.split("T")[0],
-      0,
-      0,
-      "advisor_created"
+      {
+        city: clientProfile.city,
+        province: clientProfile.province,
+        occupation: clientProfile.occupation,
+        age: clientProfile.estimatedAge,
+      }
     );
-
-    // Insert analysis record
-    db.prepare(`
-      INSERT INTO analyses (id, client_id, score, confidence, signals, summary, detailed_reasoning, recommended_actions, human_decision_required, analyzed_at, model_used)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      analysisId,
-      clientId,
-      analysis.score,
-      analysis.confidence,
-      JSON.stringify(analysis.signals),
-      analysis.summary,
-      analysis.detailedReasoning,
-      JSON.stringify(analysis.recommendedActions),
-      analysis.humanDecisionRequired,
-      now,
-      modelUsed
-    );
-
-    // Initialize lead status
-    db.prepare(`
-      INSERT INTO lead_status (client_id, status, advisor_notes, last_updated)
-      VALUES (?, ?, ?, ?)
-    `).run(clientId, "new", "", now);
 
     return NextResponse.json({
-      clientId,
-      clientName: `${clientProfile.firstName} ${clientProfile.lastName}`,
-      score: analysis.score,
+      requiresConfirmation: true,
+      pendingLead: { clientProfile, analysis, modelUsed, notesText },
+      duplicates,
     });
   } catch (error) {
     console.error("Lead creation from notes failed:", error);
